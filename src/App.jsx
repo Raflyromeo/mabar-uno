@@ -335,12 +335,16 @@ export default function App() {
                               WINNER: <span className={winner === myPlayer?.id ? 'text-yellow-400' : 'text-emerald-400'}>{players.find(p => p.id === winner)?.name}</span>
                           </div>
                       </div>
-                      <button 
-                         onClick={() => window.location.reload()}
-                         className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95 mt-4"
-                      >
-                         RETURN TO LOBBY
-                      </button>
+                       <button 
+                          onClick={() => {
+                            sessionStorage.setItem('menuView', 'MAIN');
+                            resetGame();
+                            setMenuView('MAIN');
+                          }}
+                          className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95 mt-4"
+                       >
+                          RETURN TO LOBBY
+                       </button>
                   </div>
                </motion.div>
            )}
