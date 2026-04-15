@@ -5,11 +5,13 @@ import Sidebar from './components/Sidebar';
 import InfoModal from './components/InfoModal';
 import { useGameStore } from './store/gameStore';
 import { useAI } from './hooks/useAI';
+import { useSocketEvents } from './hooks/useSocketEvents';
+import { socket, connectSocket, disconnectSocket } from './lib/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, createRoom, waitingPlayers, joinRoom, addBotToRoom, startGameFromRoom, resetGame } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, addBotToRoom, startGameFromRoom, resetGame, isOnline, isHost, mySocketId } = useGameStore();
 
   const [menuView, setMenuView] = useState(() => sessionStorage.getItem('menuView') || 'MAIN');
   const [hostSettings, setHostSettings] = useState(() => {
@@ -23,7 +25,8 @@ export default function App() {
   useEffect(() => { sessionStorage.setItem('hostSettings', JSON.stringify(hostSettings)); }, [hostSettings]);
   useEffect(() => { sessionStorage.setItem('playerName', playerName); }, [playerName]);
 
-  useAI(); 
+  useSocketEvents({ setMenuView, playerName });
+  useAI();
 
   const myPlayer = players.find(p => !p.isAI);
 
@@ -75,12 +78,19 @@ export default function App() {
                           </div>
 
                           <div className="pt-4 space-y-4">
-                              <button 
-                                 onClick={() => setMenuView('HOST_OPTIONS')}
-                                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg py-4 px-8 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95"
-                              >
-                                 Create Room (Host)
-                              </button>
+                               <button 
+                                  onClick={() => {
+                                      connectSocket();
+                                      socket.emit('create-room', {
+                                          playerName: playerName || 'Host',
+                                          maxPlayers: hostSettings.players,
+                                          ruleset: hostSettings.ruleset,
+                                      });
+                                  }} 
+                                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg py-4 px-8 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95"
+                               >
+                                  Create Room (Host)
+                               </button>
                               <button 
                                  onClick={() => setMenuView('JOIN')}
                                  className="w-full glass hover:bg-white/10 border border-white/20 text-white font-bold text-lg py-4 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95"
@@ -142,15 +152,19 @@ export default function App() {
                           </div>
 
                           <div className="pt-8">
-                              <button 
-                                 onClick={() => {
-                                     createRoom(hostSettings, playerName || 'Host');
-                                     setMenuView('HOST_WAITING');
-                                 }} 
-                                 className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
-                              >
+                               <button 
+                                  onClick={() => {
+                                      connectSocket();
+                                      socket.emit('create-room', {
+                                          playerName: playerName || 'Host',
+                                          maxPlayers: hostSettings.players,
+                                          ruleset: hostSettings.ruleset,
+                                      });
+                                  }}
+                                  className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
+                               >
                                  <span className="flex items-center justify-center gap-2">NEXT <ArrowRight className="w-5 h-5"/></span>
-                              </button>
+                               </button>
                           </div>
                       </motion.div>
                   )}
@@ -181,13 +195,15 @@ export default function App() {
                           </div>
 
                           <div className="px-8 sm:px-12 flex-1 overflow-hidden flex flex-col min-h-0">
-                             <h3 className="text-sm font-bold text-gray-400 mb-3 flex justify-between shrink-0">
-                                 <span>PLAYERS ({waitingPlayers.length}/{hostSettings.players})</span>
-                                 {waitingPlayers.length < hostSettings.players 
-                                   ? <span className="cursor-pointer text-emerald-400 hover:text-emerald-300" onClick={addBotToRoom}>+ Add Bot</span>
-                                   : <span className="text-gray-600 cursor-not-allowed">Room Full</span>
-                                 }
-                             </h3>
+                              <h3 className="text-sm font-bold text-gray-400 mb-3 flex justify-between shrink-0">
+                                  <span>PLAYERS ({waitingPlayers.length}/{hostSettings.players})</span>
+                                  {isHost && waitingPlayers.length < hostSettings.players 
+                                    ? <span className="cursor-pointer text-emerald-400 hover:text-emerald-300" onClick={() => socket.emit('add-bot', { code: roomCode })}>+ Add Bot</span>
+                                    : waitingPlayers.length >= hostSettings.players 
+                                      ? <span className="text-gray-600 cursor-not-allowed">Room Full</span> 
+                                      : null
+                                  }
+                              </h3>
                              <div className="overflow-y-auto flex-1 space-y-2 pr-1 pb-2">
                                  {waitingPlayers.map((p, i) => (
                                      <div key={i} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
@@ -200,15 +216,15 @@ export default function App() {
                              </div>
                           </div>
 
-                          <div className="px-8 sm:px-12 pb-10 pt-4 shrink-0">
-                              <button 
-                                 disabled={waitingPlayers.length < 2}
-                                 onClick={() => startGameFromRoom()} 
-                                 className={`w-full font-black text-xl py-4 px-8 rounded-full transition-all transform ${waitingPlayers.length >= 2 ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
-                              >
-                                 {waitingPlayers.length < 2 ? 'WAITING FOR PLAYERS...' : 'START GAME'}
-                              </button>
-                          </div>
+                           <div className="px-8 sm:px-12 pb-10 pt-4 shrink-0">
+                               <button 
+                                  disabled={waitingPlayers.length < 2 || !isHost}
+                                  onClick={() => socket.emit('start-game', { code: roomCode })} 
+                                  className={`w-full font-black text-xl py-4 px-8 rounded-full transition-all transform ${waitingPlayers.length >= 2 && isHost ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                               >
+                                  {!isHost ? 'WAITING FOR HOST...' : waitingPlayers.length < 2 ? 'WAITING FOR PLAYERS...' : 'START GAME'}
+                               </button>
+                           </div>
                       </motion.div>
                   )}
 
@@ -235,15 +251,15 @@ export default function App() {
                           </div>
 
                           <div className="pt-6">
-                              <button 
-                                 onClick={() => {
-                                     if(inputCode.length === 6) {
-                                         joinRoom(inputCode, playerName || 'Guest');
-                                         setMenuView('HOST_WAITING'); 
-                                     } else {
-                                         alert('Enter a valid 6 digit code!');
-                                     }
-                                 }}
+                               <button 
+                                  onClick={() => {
+                                      if(inputCode.length === 6) {
+                                          connectSocket();
+                                          socket.emit('join-room', { code: inputCode, playerName: playerName || 'Guest' });
+                                      } else {
+                                          alert('Enter a valid 6 digit code!');
+                                      }
+                                  }}
                                  className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
                               >
                                  <span className="flex items-center justify-center gap-2">CONNECT <ArrowRight className="w-5 h-5"/></span>

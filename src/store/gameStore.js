@@ -14,6 +14,8 @@ export const useGameStore = create((set, get) => ({
   toastMessage: null,
   ruleset: 'tongkrongan',
   isOnline: false,
+  isHost: false,
+  mySocketId: null,
   roomCode: null,
   waitingPlayers: [],
   maxPlayers: 10,
@@ -238,6 +240,23 @@ export const useGameStore = create((set, get) => ({
 
   clearToast: () => set({ toastMessage: null }),
 
+  setMySocketId: (id) => set({ mySocketId: id }),
+  setIsHost: (v) => set({ isHost: v }),
+  setWaitingPlayers: (players, maxPlayers) => set({ waitingPlayers: players, ...(maxPlayers ? { maxPlayers } : {}) }),
+
+  syncGameState: (state) => set({
+    deck: state.deck,
+    discardPile: state.discardPile,
+    players: state.players,
+    currentPlayerIndex: state.currentPlayerIndex,
+    direction: state.direction,
+    activeColor: state.activeColor,
+    stackedDrawCount: state.stackedDrawCount,
+    winner: state.winner,
+    toastMessage: state.toastMessage ?? null,
+    gameStarted: true,
+  }),
+
   resetGame: () => set({
       gameStarted: false,
       waitingPlayers: [],
@@ -246,6 +265,9 @@ export const useGameStore = create((set, get) => ({
       winner: null,
       deck: [],
       discardPile: [],
-      toastMessage: null
+      toastMessage: null,
+      isOnline: false,
+      isHost: false,
+      mySocketId: null,
   })
 }));
