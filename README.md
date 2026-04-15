@@ -219,7 +219,7 @@ Mahasiswa Sistem Informasi Semester 6 — Universitas Gunadarma
 
 | Platform | Link |
 |---|---|
-| 🐱 GitHub | [github.com/Raflyromeo](https://github.com/Raflyromeo/raflyromeo) |
+| 🐱 GitHub | [github.com/Raflyromeo](https://github.com/Raflyromeo/) |
 | 💼 LinkedIn | [linkedin.com/in/muhammadraflyromeonasution](https://linkedin.com/in/muhammadraflyromeonasution) |
 | 📸 Instagram | [@rfly.romeo_](https://instagram.com/rfly.romeo_) |
 
