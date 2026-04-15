@@ -127,6 +127,13 @@ io.on('connection', (socket) => {
   });
 });
 
+app.get('/', (_, res) => res.json({ 
+  status: 'ok', 
+  name: 'UNO Mabar Server',
+  message: 'WebSocket server is running. Connect via Socket.io from the frontend.',
+  rooms: Object.keys(rooms).length 
+}));
+
 app.get('/health', (_, res) => res.json({ status: 'ok', rooms: Object.keys(rooms).length }));
 
 const PORT = process.env.PORT || 3001;
