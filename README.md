@@ -7,7 +7,7 @@
 **Game kartu UNO multiplayer real-time berbasis web — dimainkan bersama teman atau lawan bot AI.**
 
 [![Live Demo](https://img.shields.io/badge/🎮_Live_Demo-mabar--uno.vercel.app-4ade80?style=for-the-badge)](https://mabar-uno.vercel.app)
-[![Backend Railway](https://img.shields.io/badge/⚙️_Server-Railway-6366f1?style=for-the-badge)](https://mabar-uno-be.up.railway.app)
+[![Backend Railway](https://img.shields.io/badge/⚙️_Server-Railway-6366f1?style=for-the-badge)](https://mabar-uno-production.up.railway.app/)
 [![Backend Vercel](https://img.shields.io/badge/⚙️_Server_Fallback-Vercel-000000?style=for-the-badge)](https://mabar-uno-be.vercel.app)
 
 </div>
