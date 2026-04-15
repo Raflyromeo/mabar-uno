@@ -158,9 +158,9 @@ export const useGameStore = create((set, get) => ({
           
           players[playerIndex] = { ...players[playerIndex], hand };
 
-          const firstPlayed = cardsToPlay[0];
+          const lastPlayed = cardsToPlay[cardsToPlay.length - 1];
           let direction = state.direction;
-          let activeColor = chosenColor || firstPlayed.color;
+          let activeColor = chosenColor || lastPlayed.color;
           let stackedCount = state.stackedDrawCount;
           let skipNext = false;
           let drawAdded = 0;

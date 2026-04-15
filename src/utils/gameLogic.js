@@ -38,45 +38,47 @@ export const getCardImage = (color, value) => {
 
 export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount, ruleset = 'tongkrongan') => {
   if (!playedCards || playedCards.length === 0) return false;
+  if (!topCard) return false;
 
-  const firstPlay = playedCards[0];
   const isMulti = playedCards.length > 1;
 
   if (ruleset === 'tongkrongan') {
-      if (isMulti) {
-        const value = firstPlay.value;
-        const allSameValue = playedCards.every(c => c.value === value);
-        if (!allSameValue) return false;
-      }
+    if (isMulti) {
+      const groupValue = playedCards[0].value;
+      const allSameValue = playedCards.every(c => c.value === groupValue);
+      if (!allSameValue) return false;
 
-      if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
-        return true; 
-      }
+      if (groupValue === 'Wild' || groupValue === 'Draw4') return true;
 
       if (stackedDrawCount > 0) {
-        if (topCard.value === 'Draw2' && firstPlay.value === 'Draw2') return true;
-        if (topCard.value === 'Draw4' && firstPlay.value === 'Draw4') return true;
+        if (topCard.value === 'Draw2' && groupValue === 'Draw2') return true;
+        if (topCard.value === 'Draw4' && groupValue === 'Draw4') return true;
         return false;
       }
 
-      if (firstPlay.color === activeColor || firstPlay.value === topCard.value) {
-        return true;
-      }
+      const matchesColor = playedCards.some(c => c.color === activeColor);
+      const matchesValue = groupValue === topCard.value;
+      return matchesColor || matchesValue;
+    }
 
+    const single = playedCards[0];
+
+    if (single.value === 'Wild' || single.value === 'Draw4') return true;
+
+    if (stackedDrawCount > 0) {
+      if (topCard.value === 'Draw2' && single.value === 'Draw2') return true;
+      if (topCard.value === 'Draw4' && single.value === 'Draw4') return true;
       return false;
+    }
+
+    return single.color === activeColor || single.value === topCard.value;
+
   } else {
-      if (isMulti) return false;
-      
-      if (stackedDrawCount > 0) return false;
+    if (isMulti) return false;
+    if (stackedDrawCount > 0) return false;
 
-      if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
-        return true;
-      }
-
-      if (firstPlay.color === activeColor || firstPlay.value === topCard.value) {
-        return true;
-      }
-
-      return false;
+    const single = playedCards[0];
+    if (single.value === 'Wild' || single.value === 'Draw4') return true;
+    return single.color === activeColor || single.value === topCard.value;
   }
 };

@@ -50,7 +50,7 @@ export default function App() {
               </motion.div>
               
               <div className="absolute top-[clamp(15px,3vw,30px)] right-[clamp(15px,3vw,30px)] z-[100]">
-                  <InfoModal />
+                  <InfoModal glass />
               </div>
 
               <AnimatePresence mode="wait">
@@ -62,10 +62,15 @@ export default function App() {
                          exit={{ opacity: 0, scale: 0.8 }}
                          className="z-10 glass p-12 sm:p-16 rounded-[40px] text-center space-y-8 w-full max-w-md border-t border-white/20"
                       >
-                          <h1 className="text-[clamp(4rem,12vw,6rem)] leading-none mb-2 font-black font-montserrat tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-red-500 via-yellow-400 to-green-500 drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)]">
-                              UNO
-                          </h1>
-                          <p className="text-sm font-inter text-gray-300 font-bold tracking-[0.3em]">by rafly romeo</p>
+                          <div className="flex flex-col items-center mb-2">
+                            <img 
+                              src="/uno-logo.png" 
+                              alt="UNO" 
+                              className="w-[clamp(6rem,14vw,10rem)] drop-shadow-[0_8px_20px_rgba(0,0,0,0.9)] select-none pointer-events-none"
+                              draggable={false}
+                            />
+                            <p className="text-sm font-inter text-gray-300 font-bold tracking-[0.3em] mt-4">by rafly romeo</p>
+                          </div>
                           
                           <div className="pt-2">
                               <input 
@@ -314,8 +319,6 @@ export default function App() {
                </motion.div>
            )}
        </AnimatePresence>
-
-       {/* Game Over Screen */}
        <AnimatePresence>
            {winner && (
                <motion.div 

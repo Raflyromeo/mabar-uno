@@ -50,8 +50,16 @@ const rules = [
   },
 ];
 
-export default function InfoModal() {
+export default function InfoModal({ glass = false }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const panelStyle = glass
+    ? { background: 'rgba(10, 20, 15, 0.55)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }
+    : { background: '#0a1a0f' };
+
+  const panelClass = `pointer-events-auto relative w-full max-w-lg max-h-[90dvh] flex flex-col rounded-3xl border shadow-[0_32px_80px_rgba(0,0,0,0.95)] ${
+    glass ? 'border-white/15' : 'border-white/10'
+  }`;
 
   return (
     <>
@@ -70,7 +78,7 @@ export default function InfoModal() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/50 backdrop-blur-md pointer-events-auto"
+              className="absolute inset-0 bg-black/80 pointer-events-auto"
               onClick={() => setIsOpen(false)}
             />
 
@@ -79,8 +87,8 @@ export default function InfoModal() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              className="pointer-events-auto relative w-full max-w-lg max-h-[90dvh] flex flex-col rounded-3xl border border-white/15 shadow-[0_32px_80px_rgba(0,0,0,0.7)]"
-              style={{ background: 'rgba(10, 20, 15, 0.55)', backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)' }}
+              className={panelClass}
+              style={panelStyle}
             >
               <div className="flex items-center justify-between px-5 sm:px-7 pt-5 sm:pt-7 pb-4 shrink-0">
                 <div>
