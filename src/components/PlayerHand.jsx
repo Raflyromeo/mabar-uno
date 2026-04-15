@@ -67,14 +67,11 @@ export default function PlayerHand({ playerId }) {
            </div>
        )}
 
-      {/* Dynamic Hand Layout with Overlap Constraints */}
       <div className="flex justify-center items-end px-4 pointer-events-auto w-full max-w-[85vw] mx-auto overflow-visible h-[clamp(100px,15vw,180px)] shrink-0">
         {player.hand.map((card, index) => {
             const isSelected = selectedCards.find(c => c.id === card.id) !== undefined;
             const total = player.hand.length;
             
-            // Dynamic Fan Algorithm: overlap scales heavily as hand grows
-            // Ensure cards collapse together to fit max-width boundary
             const pxOverlap = Math.min(75, 25 + (total * 2.5));
             const vwOverlap = Math.min(12, 4 + (total * 0.4));
             const dynamicMargin = `clamp(-${pxOverlap}px, -${vwOverlap}vw, -15px)`;

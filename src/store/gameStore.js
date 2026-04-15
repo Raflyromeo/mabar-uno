@@ -16,20 +16,22 @@ export const useGameStore = create((set, get) => ({
   isOnline: false,
   roomCode: null,
   waitingPlayers: [],
+  maxPlayers: 10,
 
   createRoom: (settings, hostName) => set((state) => {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       return {
           roomCode: code,
           ruleset: settings.ruleset,
+          maxPlayers: settings.players,
           isOnline: true,
           waitingPlayers: [ { id: 'p0', name: hostName, isHost: true } ]
       };
   }),
 
   joinRoom: (code, playerName) => set((state) => {
-      // Logic handled in UI, this just pushes player
       return { 
+          roomCode: code,
           waitingPlayers: [
              ...state.waitingPlayers, 
              { id: `p${state.waitingPlayers.length}`, name: playerName, isHost: false }
@@ -38,6 +40,7 @@ export const useGameStore = create((set, get) => ({
   }),
 
   addBotToRoom: () => set((state) => {
+      if (state.waitingPlayers.length >= state.maxPlayers) return {};
       return {
           waitingPlayers: [
              ...state.waitingPlayers,
@@ -233,5 +236,16 @@ export const useGameStore = create((set, get) => ({
       });
   },
 
-  clearToast: () => set({ toastMessage: null })
+  clearToast: () => set({ toastMessage: null }),
+
+  resetGame: () => set({
+      gameStarted: false,
+      waitingPlayers: [],
+      players: [],
+      roomCode: null,
+      winner: null,
+      deck: [],
+      discardPile: [],
+      toastMessage: null
+  })
 }));

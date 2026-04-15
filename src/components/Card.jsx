@@ -9,16 +9,13 @@ export default function Card({ card, onClick, isPlayable, className, style, layo
 
   const isFaceDown = !card.value;
 
-  // Dynamic Trigonometric Arc Calculation
   const isHand = index !== undefined && total !== undefined;
   const middle = (total - 1) / 2;
   const offset = isHand ? (index - middle) : 0;
   
-  // Parabolic y-offset for true Arc, rotation for fan pattern
   const rotateOffset = isHand ? offset * 4.5 : 0;
   const arcYOffset = isHand ? Math.pow(offset, 2) * 5 : 0;
   
-  // Z-Index must scale linearly so right cards fall cleanly over left cards
   const baseZIndex = isHand ? index : 0;
   const activeZIndex = isSelected ? baseZIndex + 40 : baseZIndex;
 
@@ -30,7 +27,7 @@ export default function Card({ card, onClick, isPlayable, className, style, layo
           opacity: 1, 
           scale: 1, 
           rotate: rotateOffset, 
-          y: isSelected ? arcYOffset - 40 : arcYOffset // Elevated if selected
+          y: isSelected ? arcYOffset - 40 : arcYOffset
       }}
       exit={{ opacity: 0, scale: 0.5 }}
       transition={{ 
@@ -50,22 +47,18 @@ export default function Card({ card, onClick, isPlayable, className, style, layo
       )}
       style={{
         width: 'clamp(55px, 10vw, 110px)',
-        aspectRatio: '20/29', // True standard UNO card aspect ratio
+        aspectRatio: '20/29',
         transformOrigin: 'bottom center',
-        marginLeft: isHand && index !== 0 ? 'clamp(-40px, -5vw, -35px)' : '0px',
         zIndex: activeZIndex,
         ...style
       }}
     >
       {isFaceDown ? (
          <div className="w-full h-full bg-[#E02626] border-[clamp(3px,0.8vw,8px)] border-white rounded-[min(12px,4vw)] sm:rounded-[clamp(12px,1.5vw,18px)] flex items-center justify-center shadow-inner relative overflow-hidden">
-             {/* Diagonal inner shadow / gradients */}
              <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30"></div>
              
-             {/* Black Oval Background */}
              <div className="w-[85%] h-[55%] rounded-[100%] bg-[#1a1a1a] flex items-center justify-center -rotate-[22deg] transform shadow-[0_4px_10px_rgba(0,0,0,0.5)] border-[clamp(2px,0.5vw,5px)] border-[#FFE918] relative overflow-hidden">
                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                 {/* UNO Text with Drop Shadow to simulate 3D */}
                  <span className="font-montserrat font-black text-[#FFE918] tracking-tighter text-[length:clamp(16px,2.5vw,28px)] relative z-10" 
                        style={{ textShadow: 'max(1px, 0.2vw) max(2px, 0.3vw) 0px #A15501, 1px 1px 0px #FFF' }}>
                      UNO

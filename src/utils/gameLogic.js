@@ -7,22 +7,18 @@ export const generateDeck = () => {
   let id = 1;
   
   COLORS.forEach((color) => {
-    // One 0
     deck.push({ id: id++, color, value: '0' });
-    // Two of 1-9, Skip, Reverse, Draw2
     VALUES.slice(1).forEach((value) => {
       deck.push({ id: id++, color, value });
       deck.push({ id: id++, color, value });
     });
   });
 
-  // Four of each special
   for (let i = 0; i < 4; i++) {
     deck.push({ id: id++, color: 'None', value: 'Wild' });
     deck.push({ id: id++, color: 'None', value: 'Draw4' });
   }
 
-  // Shuffle
   return deck.sort(() => Math.random() - 0.5);
 };
 
@@ -50,7 +46,7 @@ export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount,
       if (isMulti) {
         const value = firstPlay.value;
         const allSameValue = playedCards.every(c => c.value === value);
-        if (!allSameValue) return false; // In Multi-play, all cards must match in value.
+        if (!allSameValue) return false;
       }
 
       if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
@@ -69,11 +65,8 @@ export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount,
 
       return false;
   } else {
-      // Official Rules
-      if (isMulti) return false; // Only 1 card per round
+      if (isMulti) return false;
       
-      // If there's an active stack penalty, you CANNOT respond with +2/+4 according to standard official rules.
-      // You must draw the cards and skip turn.
       if (stackedDrawCount > 0) return false;
 
       if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {

@@ -25,7 +25,6 @@ export const useAI = () => {
 
             Object.values(groups).forEach(group => {
                 if (group.length > 1 && isValidPlay(group, topCard, activeColor, stackedDrawCount, ruleset)) {
-                    // Massive weight if it's a stack chain we can drop all at once!
                     let groupWeight = group.length * 15;
                     if (group[0].value === 'Draw2' && stackedDrawCount > 0) groupWeight = group.length * 50; 
                     validPlays.push({ cards: group, weight: groupWeight }); 
@@ -36,7 +35,7 @@ export const useAI = () => {
                 if (isValidPlay([card], topCard, activeColor, stackedDrawCount, ruleset)) {
                     let weight = 5;
                     if (card.value === 'Wild' || card.value === 'Draw4') weight = 1;
-                    if (card.value === 'Draw2' && stackedDrawCount > 0) weight = 30; // Prioritize heavy defense!
+                    if (card.value === 'Draw2' && stackedDrawCount > 0) weight = 30;
 
                     validPlays.push({ cards: [card], weight });
                 }
