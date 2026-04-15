@@ -12,16 +12,74 @@ export const useGameStore = create((set, get) => ({
   gameStarted: false,
   winner: null,
   toastMessage: null,
+  ruleset: 'tongkrongan',
+  isOnline: false,
+  roomCode: null,
+  waitingPlayers: [],
 
-  startGame: (playerCount = 2) => {
+  createRoom: (settings, hostName) => set((state) => {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      return {
+          roomCode: code,
+          ruleset: settings.ruleset,
+          isOnline: true,
+          waitingPlayers: [ { id: 'p0', name: hostName, isHost: true } ]
+      };
+  }),
+
+  joinRoom: (code, playerName) => set((state) => {
+      // Logic handled in UI, this just pushes player
+      return { 
+          waitingPlayers: [
+             ...state.waitingPlayers, 
+             { id: `p${state.waitingPlayers.length}`, name: playerName, isHost: false }
+          ] 
+      };
+  }),
+
+  addBotToRoom: () => set((state) => {
+      return {
+          waitingPlayers: [
+             ...state.waitingPlayers,
+             { id: `p${state.waitingPlayers.length}`, name: `Bot ${state.waitingPlayers.length}`, isHost: false, isAI: true }
+          ]
+      }
+  }),
+
+  startGameFromRoom: () => set((state) => {
+    const freshDeck = generateDeck();
+    const playerCount = state.waitingPlayers.length;
+    const players = state.waitingPlayers.map((p, i) => ({
+        id: p.id,
+        name: p.name,
+        isAI: p.isAI || false,
+        hand: freshDeck.splice(0, 7),
+        isUno: false
+    }));
+
+    return {
+        deck: freshDeck,
+        discardPile: [freshDeck.pop()],
+        players,
+        currentPlayerIndex: 0,
+        direction: 1,
+        activeColor: null,
+        stackedDrawCount: 0,
+        gameStarted: true,
+        winner: null,
+        toastMessage: "MATCH START!"
+    };
+  }),
+
+  startGame: ({ playerCount = 2, ruleset = 'tongkrongan', isOnline = false, playerName = 'You' } = {}) => {
     const freshDeck = generateDeck();
     const players = [];
 
     for (let i = 0; i < playerCount; i++) {
         players.push({
             id: `p${i}`,
-            name: i === 0 ? 'You' : `Bot ${i}`,
-            isAI: i > 0,
+            name: i === 0 ? playerName : (isOnline ? `Player ${i+1}` : `Bot ${i}`),
+            isAI: !isOnline && i > 0,
             hand: freshDeck.splice(0, 7), 
             isUno: false
         });
@@ -101,23 +159,23 @@ export const useGameStore = create((set, get) => ({
           let stackedCount = state.stackedDrawCount;
           let skipNext = false;
           let drawAdded = 0;
+          let effectToast = null;
 
           cardsToPlay.forEach(card => {
              if (card.value === 'Draw2') drawAdded += 2;
              if (card.value === 'Draw4') drawAdded += 4;
              if (card.value === 'Reverse') {
-                 if (state.players.length === 2 && !drawAdded) {
-                     skipNext = !skipNext;
-                 } else {
-                     direction = direction * -1;
-                 }
+                 direction *= -1;
+                 effectToast = "REVERSED!";
              }
              if (card.value === 'Skip') {
-                 skipNext = !skipNext; 
+                 skipNext = true;
+                 effectToast = "SKIPPED!";
              }
           });
 
           if (drawAdded > 0) {
+              effectToast = `+${drawAdded} COMBO!`;
               stackedCount += drawAdded;
           }
 
@@ -146,7 +204,8 @@ export const useGameStore = create((set, get) => ({
               activeColor,
               direction,
               stackedDrawCount: stackedCount,
-              currentPlayerIndex: nextIndex
+              currentPlayerIndex: nextIndex,
+              toastMessage: players[playerIndex].hand.length === 1 ? "UNO!" : effectToast
           };
       });
   },

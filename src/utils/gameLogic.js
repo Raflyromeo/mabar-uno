@@ -40,44 +40,50 @@ export const getCardImage = (color, value) => {
   return `/card/${color}- ${value}.svg`;
 };
 
-// Evaluate if played cards are valid according to standard + Tongkrongan rules
-export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount) => {
+export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount, ruleset = 'tongkrongan') => {
   if (!playedCards || playedCards.length === 0) return false;
 
   const firstPlay = playedCards[0];
-
-  // Tongkrongan: Multi-Number Play
-  // Must verify that ALL played cards have the exact same value.
-  const value = firstPlay.value;
   const isMulti = playedCards.length > 1;
-  
-  if (isMulti) {
-    const allSameValue = playedCards.every(c => c.value === value);
-    if (!allSameValue) return false; // In Multi-play, all cards must match in value.
-  }
 
-  // Tongkrongan: Instant Wild 
-  // You can play a Wild or Draw4 anytime immediately, ignoring color rules
-  if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
-    return true; // You can stack multiple Wilds/Draw4s? Typically it's just 1, but we allow it if code permits.
-  }
+  if (ruleset === 'tongkrongan') {
+      if (isMulti) {
+        const value = firstPlay.value;
+        const allSameValue = playedCards.every(c => c.value === value);
+        if (!allSameValue) return false; // In Multi-play, all cards must match in value.
+      }
 
-  // If there's an active Draw stack (stackedDrawCount > 0)
-  // Tongkrongan: Stackable +2
-  if (stackedDrawCount > 0) {
-    // Must respond with another Draw2 or Draw4
-    // Wait, Draw2 can stack on Draw2 regardless of color!
-    if (topCard.value === 'Draw2' && firstPlay.value === 'Draw2') return true;
-    if (topCard.value === 'Draw4' && firstPlay.value === 'Draw4') return true;
-    
-    // Some logic allows +4 over +2 or +2 over +4, let's keep it exact match stackable
-    return false;
-  }
+      if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
+        return true; 
+      }
 
-  // Standard Rules
-  if (firstPlay.color === activeColor || firstPlay.value === topCard.value) {
-    return true;
-  }
+      if (stackedDrawCount > 0) {
+        if (topCard.value === 'Draw2' && firstPlay.value === 'Draw2') return true;
+        if (topCard.value === 'Draw4' && firstPlay.value === 'Draw4') return true;
+        return false;
+      }
 
-  return false;
+      if (firstPlay.color === activeColor || firstPlay.value === topCard.value) {
+        return true;
+      }
+
+      return false;
+  } else {
+      // Official Rules
+      if (isMulti) return false; // Only 1 card per round
+      
+      // If there's an active stack penalty, you CANNOT respond with +2/+4 according to standard official rules.
+      // You must draw the cards and skip turn.
+      if (stackedDrawCount > 0) return false;
+
+      if (firstPlay.value === 'Wild' || firstPlay.value === 'Draw4') {
+        return true;
+      }
+
+      if (firstPlay.color === activeColor || firstPlay.value === topCard.value) {
+        return true;
+      }
+
+      return false;
+  }
 };

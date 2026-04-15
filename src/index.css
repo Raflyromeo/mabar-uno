@@ -4,7 +4,7 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+    @apply backdrop-blur-[16px] bg-white/5 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)];
   }
 }
 

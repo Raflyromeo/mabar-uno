@@ -3,7 +3,9 @@ import { useGameStore } from '../store/gameStore';
 import { isValidPlay } from '../utils/gameLogic';
 
 export const useAI = () => {
-    const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, gameStarted, winner, direction } = useGameStore();
+    const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, gameStarted, winner, direction, ruleset } = useGameStore();
+
+    const topCard = discardPile[discardPile.length - 1];
 
     useEffect(() => {
         if (!gameStarted || winner) return;
@@ -12,7 +14,6 @@ export const useAI = () => {
         if (!p || !p.isAI) return;
 
         const timer = setTimeout(() => {
-            const topCard = discardPile[discardPile.length - 1];
             
             const groups = {};
             p.hand.forEach(card => {
@@ -23,16 +24,20 @@ export const useAI = () => {
             let validPlays = [];
 
             Object.values(groups).forEach(group => {
-                if (group.length > 1 && isValidPlay(group, topCard, activeColor, stackedDrawCount)) {
-                    validPlays.push({ cards: group, weight: group.length * 10 }); 
+                if (group.length > 1 && isValidPlay(group, topCard, activeColor, stackedDrawCount, ruleset)) {
+                    // Massive weight if it's a stack chain we can drop all at once!
+                    let groupWeight = group.length * 15;
+                    if (group[0].value === 'Draw2' && stackedDrawCount > 0) groupWeight = group.length * 50; 
+                    validPlays.push({ cards: group, weight: groupWeight }); 
                 }
             });
 
             p.hand.forEach(card => {
-                if (isValidPlay([card], topCard, activeColor, stackedDrawCount)) {
+                if (isValidPlay([card], topCard, activeColor, stackedDrawCount, ruleset)) {
                     let weight = 5;
                     if (card.value === 'Wild' || card.value === 'Draw4') weight = 1;
-                    if (card.value === 'Draw2' && stackedDrawCount > 0) weight = 20; // Must stack!
+                    if (card.value === 'Draw2' && stackedDrawCount > 0) weight = 30; // Prioritize heavy defense!
+
                     validPlays.push({ cards: [card], weight });
                 }
             });
