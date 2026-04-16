@@ -204,9 +204,8 @@ export default function PlayerHand({ playerId }) {
         {player.hand.map((card, index) => {
             const isSelected = selectedCards.find(c => c.id === card.id) !== undefined;
             const total = player.hand.length;
-            const pxOverlap = Math.min(75, 25 + (total * 2.5));
-            const vwOverlap = Math.min(12, 4 + (total * 0.4));
-            const dynamicMargin = `clamp(-${pxOverlap}px, -${vwOverlap}vw, -15px)`;
+            
+            const overlapCSS = index === 0 ? 'ml-0' : (total > 15 ? '-ml-10 sm:-ml-14' : (total > 8 ? '-ml-8 sm:-ml-12' : '-ml-6 sm:-ml-10'));
 
             return (
               <Card
@@ -217,11 +216,8 @@ export default function PlayerHand({ playerId }) {
                   isPlayable={isMyTurn}
                   isSelected={isSelected}
                   onClick={() => handleCardClick(card)}
-                  style={{
-                      marginLeft: index === 0 ? '0px' : dynamicMargin,
-                      zIndex: isSelected ? 50 : undefined,
-                      flexShrink: 0
-                  }}
+                  className={`w-16 h-24 sm:w-[96px] sm:h-[139px] flex-shrink-0 ${overlapCSS}`}
+                  style={{ zIndex: isSelected ? 50 : undefined }}
               />
             );
         })}

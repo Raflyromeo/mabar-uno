@@ -24,16 +24,15 @@ export default function GameBoard() {
   }
 
   const getOpponentLayout = (opponentIndex, totalOpponents) => {
-      const top    = { containerFlex: 'flex-col',         pos: 'top-[clamp(10px,2vw,28px)] left-1/2 -translate-x-1/2',           cardRot: 0,   isVertical: false };
-      const left   = { containerFlex: 'flex-row',         pos: 'top-1/2 left-[clamp(10px,2vw,28px)] -translate-y-1/2',            cardRot: 90,  isVertical: true  };
-      const right  = { containerFlex: 'flex-row-reverse', pos: 'top-1/2 right-[clamp(10px,2vw,28px)] -translate-y-1/2',           cardRot: -90, isVertical: true  };
+      const top    = { transClass: '-translate-y-[42vh] sm:-translate-y-[45vh] rotate-180', badgeRot: 'rotate-180' };
+      const left   = { transClass: '-translate-x-[42vw] sm:-translate-x-[45vw] rotate-90',  badgeRot: '-rotate-90' };
+      const right  = { transClass: 'translate-x-[42vw] sm:translate-x-[45vw] -rotate-90', badgeRot: 'rotate-90' };
 
       if (totalOpponents === 1) return top;
       if (totalOpponents === 2) return opponentIndex === 0 ? left : top;
       if (totalOpponents === 3) return [left, top, right][opponentIndex] ?? top;
 
-      const spread = (opponentIndex + 1) * (100 / (totalOpponents + 1));
-      return { containerFlex: 'flex-col', pos: 'top-4', left: `${spread}%`, cardRot: 0, isVertical: false };
+      return top;
   };
 
   const colorGlow = {
@@ -71,48 +70,46 @@ export default function GameBoard() {
              return (
                  <div
                      key={bot.id}
-                     className={`absolute ${layout.pos} flex ${layout.containerFlex} items-center justify-center gap-[clamp(6px,1vw,16px)]`}
-                     style={{ left: layout.left, transform: layout.left ? 'translateX(-50%)' : undefined }}
+                     className={`absolute top-1/2 left-1/2 w-[80vw] sm:w-[60vw] max-w-[600px] flex flex-col items-center justify-start gap-2 transition-transform origin-center ${layout.transClass}`}
+                     style={{ marginLeft: '-40vw', marginTop: '-50px' }}
                  >
-                     <div className="flex flex-col items-center justify-center z-20 shrink-0">
-                         <div className={`glass px-[clamp(6px,0.8vw,14px)] py-[clamp(3px,0.4vw,7px)] rounded-[clamp(6px,0.8vw,14px)] flex items-center justify-center bg-black/50 border-[0.5px] ${isActive ? 'border-yellow-400/80 shadow-[0_0_16px_#facc15]' : 'border-white/10'}`}>
-                             <span className="text-white text-[clamp(7px,0.8vw,11px)] tracking-wider uppercase mr-1.5">{bot.name}</span>
-                             <span className="w-[clamp(14px,1.8vw,22px)] h-[clamp(14px,1.8vw,22px)] rounded-full bg-white text-black text-[clamp(7px,0.9vw,11px)] flex justify-center items-center shadow-inner font-black">{bot.hand.length}</span>
+                     <div className={`flex flex-col items-center justify-center z-20 shrink-0 ${layout.badgeRot}`}>
+                         <div className={`glass px-3 py-1.5 rounded-xl flex items-center justify-center bg-black/50 border-[0.5px] ${isActive ? 'border-yellow-400/80 shadow-[0_0_16px_#facc15]' : 'border-white/10'}`}>
+                             <span className="text-white text-xs tracking-wider uppercase mr-1.5">{bot.name}</span>
+                             <span className="w-5 h-5 rounded-full bg-white text-black text-xs flex justify-center items-center shadow-inner font-black">{bot.hand.length}</span>
                              {bot.isUno && <span className="bg-red-500 text-[7px] px-1 py-0.5 rounded animate-pulse text-yellow-300 ml-1">UNO</span>}
                          </div>
                      </div>
 
-                     <div className="relative flex items-end justify-center" style={{ width: 'clamp(80px,12vw,150px)', height: 'clamp(70px,10vw,120px)' }}>
+                     <div className="relative flex items-start justify-center w-full h-[clamp(60px,10vw,90px)]">
                          {visibleCards.map((c, i) => {
-                             const angle = -totalSpread / 2 + i * spreadAngle + layout.cardRot;
+                             const angle = -totalSpread / 2 + i * spreadAngle;
                              const midOffset = i - (totalVisible - 1) / 2;
-                             const yLift = layout.isVertical ? midOffset * 6 : -(midOffset * midOffset) * 2.5;
-                             const xShift = layout.isVertical ? yLift : midOffset * 4;
+                             const yLift = -(midOffset * midOffset) * 2;
+                             const xShift = midOffset * 15;
 
                              return (
                                  <div
                                      key={c.id}
-                                     className="absolute"
+                                     className="absolute top-0 origin-top"
                                      style={{
-                                         bottom: 0,
                                          left: '50%',
-                                         width: 'clamp(38px,5.5vw,64px)',
-                                         transformOrigin: '50% 120%',
-                                         transform: `translateX(-50%) translateX(${xShift}px) translateY(${layout.isVertical ? 0 : yLift}px) rotate(${angle}deg)`,
-                                         zIndex: i,
+                                         width: 'clamp(32px,5vw,56px)',
+                                         transform: `translateX(-50%) translateX(${xShift}px) translateY(${-yLift}px) rotate(${angle}deg)`,
+                                         zIndex: totalVisible - i,
                                      }}
                                  >
                                      <Card
                                          card={{ ...c, value: null }}
                                          index={i}
                                          total={totalVisible}
-                                         className="w-full pointer-events-none shadow-[0_6px_20px_rgba(0,0,0,0.7)]"
+                                         className="w-full h-full aspect-[20/29] pointer-events-none shadow-[0_6px_20px_rgba(0,0,0,0.7)] rotate-180"
                                      />
                                  </div>
                              );
                          })}
                          {bot.hand.length > 7 && (
-                             <div className="absolute -right-1 -top-1 z-50 text-[clamp(7px,0.8vw,11px)] bg-black/90 rounded-full px-1.5 py-0.5 text-white shadow border border-white/20">
+                             <div className={`absolute right-1/4 top-0 z-50 text-[10px] bg-black/90 rounded-full px-2 py-0.5 text-white shadow border border-white/20 ${layout.badgeRot}`}>
                                  +{bot.hand.length - 7}
                              </div>
                          )}
@@ -122,20 +119,20 @@ export default function GameBoard() {
           })}
       </div>
 
-      <div className="relative flex items-center justify-center gap-[clamp(24px,6vw,90px)] z-40 w-full max-w-2xl px-4 py-[clamp(20px,4vw,60px)]">
+      <div className="relative flex items-center justify-center gap-[clamp(20px,10vw,100px)] z-40 w-full px-4 shrink-0 transition-transform">
 
           <div className="relative flex flex-col items-center justify-center">
               <motion.div
                  whileHover={{ scale: 1.05, y: -5 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={handleDraw}
-                 className="cursor-pointer relative rounded-[clamp(12px,1.5vw,18px)] w-[clamp(55px,10vw,110px)] aspect-[20/29] rotate-[-5deg]"
+                 className="cursor-pointer relative rounded-[clamp(12px,1.5vw,18px)] w-[clamp(64px,18vh,120px)] sm:w-[clamp(80px,22vh,150px)] aspect-[20/29] rotate-[-5deg]"
               >
                   {deck.length > 0 ? (
                      <Card
                          key={deck[deck.length - 1].id}
                          card={{ ...deck[deck.length - 1], value: null }}
-                         className="absolute inset-0 shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05),_4px_4px_0px_0px_rgba(0,0,0,0.8),_6px_6px_0px_0px_rgba(255,255,255,0.05),_8px_8px_0px_0px_rgba(0,0,0,0.9),_20px_20px_40px_rgba(0,0,0,0.9)] border border-white/20"
+                         className="absolute inset-0 w-full h-full aspect-[20/29] shadow-[2px_2px_0px_0px_rgba(255,255,255,0.05),_4px_4px_0px_0px_rgba(0,0,0,0.8),_6px_6px_0px_0px_rgba(255,255,255,0.05),_8px_8px_0px_0px_rgba(0,0,0,0.9),_20px_20px_40px_rgba(0,0,0,0.9)] border border-white/20"
                          layoutId={`card-${deck[deck.length - 1].id}`}
                      />
                   ) : (
@@ -159,7 +156,7 @@ export default function GameBoard() {
               />
           </div>
 
-          <div className="relative z-10 w-[clamp(55px,10vw,110px)] aspect-[20/29]">
+          <div className="relative z-10 w-[clamp(64px,18vh,120px)] sm:w-[clamp(80px,22vh,150px)] aspect-[20/29]">
              <AnimatePresence mode="popLayout">
                  {discardPile.length > 0 && [discardPile[discardPile.length - 1]].map((topCard) => {
                      const uniqueKey = `${topCard.id}-${discardPile.length}`;
@@ -177,7 +174,7 @@ export default function GameBoard() {
                              className="absolute inset-0 shadow-[0_20px_50px_rgba(0,0,0,0.7)]"
                              style={{ zIndex: discardPile.length }}
                          >
-                             <Card card={topCard} />
+                             <Card card={topCard} className="w-full h-full aspect-[20/29]" />
                          </motion.div>
                      );
                  })}

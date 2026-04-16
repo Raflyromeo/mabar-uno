@@ -40,14 +40,12 @@ export default function Card({ card, onClick, isPlayable, className, style, layo
       whileTap={isPlayable && !isFaceDown ? { scale: 0.95 } : {}}
       onClick={isPlayable ? onClick : undefined}
       className={clsx(
-        "relative rounded-[min(12px,4vw)] sm:rounded-[clamp(12px,1.5vw,18px)] overflow-hidden will-change-transform shadow-[0_8px_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all",
+        "relative rounded-md sm:rounded-xl overflow-hidden will-change-transform shadow-md border border-white/20 transition-all",
         isPlayable ? "cursor-pointer hover:shadow-[0_20px_40px_rgba(0,0,0,0.7)]" : "cursor-not-allowed",
         isSelected ? "ring-4 ring-yellow-400 shadow-[0_0_35px_rgba(250,204,21,0.6)]" : "",
-        className
+        className || "w-full h-full aspect-[20/29]"
       )}
       style={{
-        width: 'clamp(55px, 10vw, 110px)',
-        aspectRatio: '20/29',
         transformOrigin: 'bottom center',
         zIndex: activeZIndex,
         ...style
