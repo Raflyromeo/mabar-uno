@@ -83,8 +83,59 @@ function PlayGroupBar({ selectedCards, isSelectionValid, onPlay, onClear }) {
   );
 }
 
+function DrawCardButton({ onClick, stackedCount }) {
+  return ReactDOM.createPortal(
+    <button
+      onClick={onClick}
+      style={{
+        position: 'fixed',
+        bottom: 'clamp(130px, 20vw, 220px)',
+        right: 'clamp(12px, 3vw, 28px)',
+        zIndex: 9997,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '4px',
+        background: stackedCount > 0
+          ? 'linear-gradient(135deg, #ef4444, #be123c)'
+          : 'linear-gradient(135deg, #1a2e20, #0f1f14)',
+        border: stackedCount > 0 ? '3px solid #fca5a5' : '2px solid rgba(255,255,255,0.2)',
+        borderRadius: '16px',
+        padding: 'clamp(10px,2vw,16px) clamp(12px,2.5vw,20px)',
+        color: 'white',
+        fontWeight: 900,
+        fontSize: 'clamp(10px,1.2vw,13px)',
+        letterSpacing: '0.05em',
+        cursor: 'pointer',
+        boxShadow: stackedCount > 0
+          ? '0 0 20px rgba(239,68,68,0.6), 0 8px 20px rgba(0,0,0,0.5)'
+          : '0 8px 20px rgba(0,0,0,0.5)',
+        transition: 'transform 0.15s',
+        touchAction: 'manipulation',
+        minWidth: 'clamp(56px, 8vw, 80px)',
+        textAlign: 'center',
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.07)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+      onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.95)'; }}
+      onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+    >
+      {stackedCount > 0 && (
+        <span style={{ fontSize: 'clamp(16px,3vw,22px)', fontWeight: 900, lineHeight: 1 }}>
+          +{stackedCount}
+        </span>
+      )}
+      <span style={{ fontSize: stackedCount > 0 ? 'clamp(8px,1vw,11px)' : 'clamp(10px,1.2vw,13px)', opacity: 0.85 }}>
+        {stackedCount > 0 ? 'AMBIL' : '🂠 AMBIL'}
+      </span>
+    </button>,
+    document.body
+  );
+}
+
 export default function PlayerHand({ playerId }) {
-  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, ruleset, winner, callUno } = useGameStore();
+  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno } = useGameStore();
 
   const player = players.find(p => p.id === playerId);
   const isMyTurn = players[currentPlayerIndex]?.id === playerId;
@@ -190,6 +241,13 @@ export default function PlayerHand({ playerId }) {
           <span className="font-bold text-white text-[clamp(10px,1.2vw,14px)] uppercase tracking-widest">{player.name}</span>
           <div className="w-[clamp(20px,2.5vw,28px)] h-[clamp(20px,2.5vw,28px)] rounded-full bg-white text-black font-black flex items-center justify-center text-[clamp(10px,1.2vw,14px)] shadow-inner">{player.hand.length}</div>
       </div>
+
+      {isMyTurn && selectedCards.length === 0 && (
+        <DrawCardButton
+          onClick={() => passTurn(playerId)}
+          stackedCount={stackedDrawCount}
+        />
+      )}
 
       {showUnoButton && (
         <button

@@ -11,9 +11,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, addBotToRoom, startGameFromRoom, resetGame, isOnline, isHost, mySocketId } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, addBotToRoom, startGameFromRoom, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView } = useGameStore();
 
-  const [menuView, setMenuView] = useState(() => sessionStorage.getItem('menuView') || 'MAIN');
   const [hostSettings, setHostSettings] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem('hostSettings')) || { players: 4, ruleset: 'tongkrongan' }; } 
     catch { return { players: 4, ruleset: 'tongkrongan' }; }
@@ -21,7 +20,6 @@ export default function App() {
   const [inputCode, setInputCode] = useState('');
   const [playerName, setPlayerName] = useState(() => sessionStorage.getItem('playerName') || 'Player');
 
-  useEffect(() => { sessionStorage.setItem('menuView', gameStarted ? 'GAME' : menuView); }, [menuView, gameStarted]);
   useEffect(() => { sessionStorage.setItem('hostSettings', JSON.stringify(hostSettings)); }, [hostSettings]);
   useEffect(() => { sessionStorage.setItem('playerName', playerName); }, [playerName]);
 
@@ -345,11 +343,7 @@ export default function App() {
                           </div>
                       </div>
                        <button 
-                          onClick={() => {
-                            sessionStorage.setItem('menuView', 'MAIN');
-                            resetGame();
-                            setMenuView('MAIN');
-                          }}
+                          onClick={() => resetGame()}
                           className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95 mt-4"
                        >
                           RETURN TO LOBBY
