@@ -94,7 +94,7 @@ export default function GameBoard() {
                                      className="absolute top-0 origin-top"
                                      style={{
                                          left: '50%',
-                                         height: 'clamp(50px,14vh,90px)',
+                                         width: 'clamp(34px,10vh,62px)',
                                          transform: `translateX(-50%) translateX(${xShift}px) translateY(${-yLift}px) rotate(${angle}deg)`,
                                          zIndex: totalVisible - i,
                                      }}
@@ -126,7 +126,7 @@ export default function GameBoard() {
                  whileHover={{ scale: 1.05, y: -5 }}
                  whileTap={{ scale: 0.95 }}
                  onClick={handleDraw}
-                 className="cursor-pointer relative rounded-[clamp(12px,1.5vw,18px)] h-[clamp(90px,28vh,160px)] w-auto aspect-[20/29] rotate-[-5deg]"
+                 className="cursor-pointer relative rounded-[clamp(12px,1.5vw,18px)] w-[clamp(62px,20vh,110px)] aspect-[20/29] rotate-[-5deg]"
               >
                   {deck.length > 0 ? (
                      <Card
@@ -156,7 +156,7 @@ export default function GameBoard() {
               />
           </div>
 
-          <div className="relative z-10 h-[clamp(90px,28vh,160px)] w-auto aspect-[20/29]">
+          <div className="relative z-10 w-[clamp(62px,20vh,110px)] aspect-[20/29]">
              <AnimatePresence mode="popLayout">
                  {discardPile.length > 0 && [discardPile[discardPile.length - 1]].map((topCard) => {
                      const uniqueKey = `${topCard.id}-${discardPile.length}`;

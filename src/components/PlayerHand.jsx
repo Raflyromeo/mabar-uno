@@ -216,7 +216,7 @@ export default function PlayerHand({ playerId }) {
                   isPlayable={isMyTurn}
                   isSelected={isSelected}
                   onClick={() => handleCardClick(card)}
-                  className={`h-[clamp(80px,28vh,140px)] w-auto aspect-[20/29] flex-shrink-0 ${overlapCSS}`}
+                  className={`w-[clamp(55px,20vh,96px)] aspect-[20/29] flex-shrink-0 ${overlapCSS}`}
                   style={{ zIndex: isSelected ? 50 : undefined }}
               />
             );
