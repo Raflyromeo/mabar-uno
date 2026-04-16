@@ -28,7 +28,7 @@ export default function App() {
   useSocketEvents({ setMenuView, playerName });
   useAI();
 
-  const myPlayer = isOnline ? players.find(p => p.id === mySocketId) : players.find(p => !p.isAI);
+  const myPlayer = isOnline ? players.find(p => p.id === (socket.id || mySocketId)) : players.find(p => !p.isAI);
 
   useEffect(() => {
      if (toastMessage) {
