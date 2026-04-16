@@ -205,7 +205,7 @@ export default function PlayerHand({ playerId }) {
             const isSelected = selectedCards.find(c => c.id === card.id) !== undefined;
             const total = player.hand.length;
             
-            const overlapCSS = index === 0 ? 'ml-0' : (total > 15 ? '-ml-10 sm:-ml-14' : (total > 8 ? '-ml-8 sm:-ml-12' : '-ml-6 sm:-ml-10'));
+            const overlapCSS = index === 0 ? 'ml-0' : (total > 15 ? '-ml-[clamp(30px,6vh,50px)]' : (total > 8 ? '-ml-[clamp(25px,5vh,40px)]' : '-ml-[clamp(20px,4vh,30px)]'));
 
             return (
               <Card
@@ -216,7 +216,7 @@ export default function PlayerHand({ playerId }) {
                   isPlayable={isMyTurn}
                   isSelected={isSelected}
                   onClick={() => handleCardClick(card)}
-                  className={`w-16 h-24 sm:w-[96px] sm:h-[139px] flex-shrink-0 ${overlapCSS}`}
+                  className={`h-[clamp(80px,28vh,140px)] w-auto aspect-[20/29] flex-shrink-0 ${overlapCSS}`}
                   style={{ zIndex: isSelected ? 50 : undefined }}
               />
             );
