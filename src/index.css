@@ -12,3 +12,13 @@ body {
   margin: 0;
   padding: 0;
 }
+
+#orientation-overlay {
+    display: none;
+}
+
+@media screen and (max-width: 900px) and (orientation: portrait) {
+    #orientation-overlay {
+        display: flex !important;
+    }
+}

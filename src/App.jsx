@@ -28,7 +28,7 @@ export default function App() {
   useSocketEvents({ setMenuView, playerName });
   useAI();
 
-  const myPlayer = players.find(p => !p.isAI);
+  const myPlayer = isOnline ? players.find(p => p.id === mySocketId) : players.find(p => !p.isAI);
 
   useEffect(() => {
      if (toastMessage) {
@@ -279,6 +279,14 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen relative bg-black text-white overflow-hidden font-inter select-none">
+       <div id="orientation-overlay" className="fixed inset-0 z-[9999] bg-black flex-col items-center justify-center p-8 text-white text-center">
+           <svg className="w-20 h-20 mb-6 animate-spin text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+           </svg>
+           <h2 className="text-2xl font-black mb-4">Mabar Uno lebih seru di mode Landscape!</h2>
+           <p className="text-gray-400">Silakan putar perangkat Anda.</p>
+       </div>
+
        <div className="absolute top-[clamp(15px,3vw,30px)] left-[clamp(15px,3vw,30px)] z-[100] pointer-events-auto">
           <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="glass px-[clamp(12px,2vw,20px)] py-[clamp(6px,1vw,10px)] rounded-full text-white hover:bg-neutral-800/80 transition-colors flex items-center gap-2 text-[clamp(10px,1vw,14px)] border border-white/20 shadow-md transform hover:scale-105 active:scale-95">
              <ArrowLeft className="w-4 h-4" /> LEAVE

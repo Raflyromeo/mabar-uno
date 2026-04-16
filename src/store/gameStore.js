@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { generateDeck } from '../utils/gameLogic';
+import { socket } from '../lib/socket';
 
 export const useGameStore = create((set, get) => ({
   deck: [],
@@ -194,16 +195,12 @@ export const useGameStore = create((set, get) => ({
              if (nextIndex >= players.length) nextIndex = 0;
           }
 
-          if (hand.length === 0) {
-              return { 
-                  players, 
-                  discardPile: [...state.discardPile, ...cardsToPlay], 
-                  activeColor,
-                  winner: playerId 
-              };
-          }
-
-          return {
+          const newState = hand.length === 0 ? { 
+              players, 
+              discardPile: [...state.discardPile, ...cardsToPlay], 
+              activeColor,
+              winner: playerId 
+          } : {
               players,
               discardPile: [...state.discardPile, ...cardsToPlay],
               activeColor,
@@ -212,6 +209,13 @@ export const useGameStore = create((set, get) => ({
               currentPlayerIndex: nextIndex,
               toastMessage: players[playerIndex].hand.length === 1 ? "UNO!" : effectToast
           };
+
+          if (state.isOnline) {
+             socket.emit('state-update', { code: state.roomCode, state: { ...state, ...newState } });
+             socket.emit('game_update', { ...state, ...newState });
+          }
+
+          return newState;
       });
   },
   
@@ -224,6 +228,12 @@ export const useGameStore = create((set, get) => ({
          state.drawCards(playerId, 1);
       }
       state.setNextPlayer();
+      
+      const newState = get();
+      if (newState.isOnline) {
+          socket.emit('state-update', { code: newState.roomCode, state: newState });
+          socket.emit('game_update', newState);
+      }
   },
 
   callUno: (playerId) => {
