@@ -3,7 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { isValidPlay } from '../utils/gameLogic';
 
 export const useAI = () => {
-    const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, gameStarted, winner, direction, ruleset } = useGameStore();
+    const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, gameStarted, winner, direction, ruleset, botDifficulty } = useGameStore();
 
     const topCard = discardPile[discardPile.length - 1];
 
@@ -43,7 +43,15 @@ export const useAI = () => {
 
             if (validPlays.length > 0) {
                 validPlays.sort((a, b) => b.weight - a.weight);
-                const bestPlay = validPlays[0].cards;
+                let chosenPlay;
+                if (botDifficulty === 'easy') {
+                    chosenPlay = validPlays[Math.floor(Math.random() * validPlays.length)]?.cards || validPlays[validPlays.length - 1].cards;
+                } else if (botDifficulty === 'hard') {
+                    chosenPlay = validPlays[0].cards;
+                } else {
+                    chosenPlay = validPlays.slice(0, Math.min(3, validPlays.length))[Math.floor(Math.random() * Math.min(3, validPlays.length))].cards;
+                }
+                const bestPlay = chosenPlay;
                 
                 let chosenColor = null;
                 if (bestPlay[0].value === 'Wild' || bestPlay[0].value === 'Draw4') {
@@ -61,5 +69,5 @@ export const useAI = () => {
 
         return () => clearTimeout(timer);
 
-    }, [currentPlayerIndex, gameStarted, topCard?.id, activeColor, stackedDrawCount, direction]); 
+    }, [currentPlayerIndex, gameStarted, topCard?.id, activeColor, stackedDrawCount, direction, botDifficulty]); 
 }
