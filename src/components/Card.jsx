@@ -45,6 +45,7 @@ export default function Card({ card, onClick, isPlayable, className, style, layo
         isSelected ? "ring-4 ring-yellow-400 shadow-[0_0_35px_rgba(250,204,21,0.6)]" : "",
         className || "w-full h-full aspect-[20/29]"
       )}
+      data-selected={isSelected ? 'true' : 'false'}
       style={{
         transformOrigin: 'bottom center',
         zIndex: activeZIndex,
