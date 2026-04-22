@@ -62,7 +62,7 @@ function DrawCardButton({ onClick, stackedCount, t }) {
 }
 
 export default function PlayerHand({ playerId }) {
-  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno, language, translations, drawCards, soundEnabled } = useGameStore();
+  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno, language, translations, drawCards, soundEnabled, isChatOpen } = useGameStore();
   const t = translations?.[language] || translations?.id;
 
   const player = players.find(p => p.id === playerId);
@@ -212,7 +212,7 @@ export default function PlayerHand({ playerId }) {
           <div className="w-[clamp(20px,2.5vw,28px)] h-[clamp(20px,2.5vw,28px)] rounded-full bg-white text-black font-black flex items-center justify-center text-[clamp(10px,1.2vw,14px)] shadow-inner">{player.hand.length}</div>
       </div>
 
-      {isMyTurn && selectedCards.length === 0 && (
+      {isMyTurn && selectedCards.length === 0 && !isChatOpen && (
         <DrawCardButton
           onClick={() => passTurn(playerId)}
           stackedCount={stackedDrawCount}
