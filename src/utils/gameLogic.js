@@ -2,6 +2,15 @@ export const COLORS = ['Red', 'Yellow', 'Green', 'Blue'];
 export const VALUES = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Skip', 'Reverse', 'Draw2'];
 export const SPECIALS = ['Wild', 'Draw4'];
 
+export const fisherYatesShuffle = (cards) => {
+  const shuffled = [...cards];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const generateDeck = () => {
   const deck = [];
   let id = 1;
@@ -19,7 +28,7 @@ export const generateDeck = () => {
     deck.push({ id: id++, color: 'None', value: 'Draw4' });
   }
 
-  return deck.sort(() => Math.random() - 0.5);
+  return fisherYatesShuffle(deck);
 };
 
 export const getCardImage = (color, value) => {
