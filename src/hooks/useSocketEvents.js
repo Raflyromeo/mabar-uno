@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { socket } from '../lib/socket';
 import { useGameStore } from '../store/gameStore';
-import { generateDeck } from '../utils/gameLogic';
-
 export function useSocketEvents({ setMenuView, playerName }) {
   const {
     setMySocketId, setIsHost, setWaitingPlayers,
@@ -42,30 +40,7 @@ export function useSocketEvents({ setMenuView, playerName }) {
     });
 
     socket.on('game-starting', ({ players: lobbyPlayers, ruleset }) => {
-      const freshDeck = generateDeck();
-      const gamePlayers = lobbyPlayers.map((p) => ({
-        id: p.id,
-        name: p.name,
-        isAI: p.isAI || false,
-        hand: freshDeck.splice(0, 7),
-        isUno: false,
-      }));
-
-      let firstCardIndex = freshDeck.findIndex(c => c.value !== 'Wild' && c.value !== 'Draw4');
-      if (firstCardIndex === -1) firstCardIndex = 0;
-      const firstCard = freshDeck.splice(firstCardIndex, 1)[0];
-
-      const state = {
-        deck: freshDeck,
-        discardPile: [firstCard],
-        players: gamePlayers,
-        currentPlayerIndex: 0,
-        direction: 1,
-        activeColor: firstCard.color !== 'None' ? firstCard.color : 'Red',
-        stackedDrawCount: 0,
-        winner: null,
-        toastMessage: 'MATCH START!',
-      };
+      const state = useGameStore.getState().createMatchStateFromParticipants(lobbyPlayers);
 
       syncGameState(state);
       useGameStore.setState({ ruleset });
@@ -103,6 +78,18 @@ export function useSocketEvents({ setMenuView, playerName }) {
       addChatMessage(message);
     });
 
+    socket.on('play-again-started', ({ players: lobbyPlayers, ruleset }) => {
+      const state = useGameStore.getState().createMatchStateFromParticipants(lobbyPlayers);
+      syncGameState(state);
+      useGameStore.setState({ ruleset });
+      if (useGameStore.getState().isHost) {
+        socket.emit('state-update', {
+          code: useGameStore.getState().roomCode,
+          state,
+        });
+      }
+    });
+
     return () => {
       socket.off('connect');
       socket.off('room-created');
@@ -114,6 +101,7 @@ export function useSocketEvents({ setMenuView, playerName }) {
       socket.off('action-received');
       socket.off('host-changed');
       socket.off('chat-message');
+      socket.off('play-again-started');
     };
   }, []);
 
