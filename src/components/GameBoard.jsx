@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../lib/socket';
 
 export default function GameBoard() {
-  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex, isOnline, mySocketId } = useGameStore();
+  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex, isOnline, mySocketId, language, translations } = useGameStore();
+  const t = translations?.[language] || translations?.id;
 
   const handleDraw = () => {
      const myIndex = players.findIndex(p => !p.isAI);
@@ -140,7 +141,7 @@ export default function GameBoard() {
                          layoutId={`card-${deck[deck.length - 1].id}`}
                      />
                   ) : (
-                      <div className="w-full h-full border-[3px] border-dashed border-white/20 rounded-[clamp(12px,1.5vw,18px)] flex items-center justify-center text-white/50 text-[clamp(8px,1vw,12px)] font-bold shadow-inner backdrop-blur-sm">Empty</div>
+                      <div className="w-full h-full border-[3px] border-dashed border-white/20 rounded-[clamp(12px,1.5vw,18px)] flex items-center justify-center text-white/50 text-[clamp(8px,1vw,12px)] font-bold shadow-inner backdrop-blur-sm">{t.deckEmpty}</div>
                   )}
               </motion.div>
 
