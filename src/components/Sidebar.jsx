@@ -4,9 +4,8 @@ import { socket } from '../lib/socket';
 import { MessageCircle, X } from 'lucide-react';
 
 export default function Sidebar() {
-    const { players, currentPlayerIndex, roomCode, chatMessages, language, translations, isOnline } = useGameStore();
+    const { players, currentPlayerIndex, roomCode, chatMessages, language, translations, isOnline, isChatOpen, setIsChatOpen } = useGameStore();
     const t = translations?.[language] || translations?.id;
-    const [chatOpen, setChatOpen] = useState(false);
     const [message, setMessage] = useState('');
 
     const orderedMessages = useMemo(
@@ -30,10 +29,10 @@ export default function Sidebar() {
       <>
         {showChat && (
           <button
-            onClick={() => setChatOpen((v) => !v)}
+            onClick={() => setIsChatOpen(!isChatOpen)}
             className="absolute right-5 bottom-5 z-[120] flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-md hover:bg-black/35"
           >
-            {chatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+            {isChatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
             {t.chat}
           </button>
         )}
@@ -66,7 +65,7 @@ export default function Sidebar() {
             </div>
         </div>
 
-        {showChat && chatOpen && (
+        {showChat && isChatOpen && (
           <div className="absolute right-5 bottom-20 z-[130] w-[min(92vw,340px)] rounded-2xl border border-white/10 bg-black/20 p-3 backdrop-blur-md">
             <h3 className="mb-2 text-sm font-black text-white">{t.chat}</h3>
             <div className="mb-3 h-56 overflow-y-auto rounded-xl border border-white/10 bg-black/25 p-2 space-y-2">
