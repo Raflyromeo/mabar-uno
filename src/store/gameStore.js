@@ -23,16 +23,21 @@ export const useGameStore = create(
       roomCode: null,
       waitingPlayers: [],
       maxPlayers: 10,
+      minPlayersToStart: 2,
+      botDifficulty: 'medium',
       menuView: 'MAIN',
 
       setMenuView: (view) => set({ menuView: view }),
 
       createRoom: (settings, hostName) => set(() => {
           const code = Math.floor(100000 + Math.random() * 900000).toString();
+          const maxPlayers = Math.max(2, Math.min(10, Number(settings.players) || 4));
+          const minPlayersToStart = Math.max(2, Math.min(maxPlayers, Number(settings.minPlayersToStart) || 2));
           return {
               roomCode: code,
               ruleset: settings.ruleset,
-              maxPlayers: settings.players,
+              maxPlayers,
+              minPlayersToStart,
               isOnline: true,
               waitingPlayers: [{ id: 'p0', name: hostName, isHost: true }]
           };
@@ -82,10 +87,11 @@ export const useGameStore = create(
       }),
 
       startGame: ({ playerCount = 2, ruleset = 'tongkrongan', isOnline = false, playerName = 'You' } = {}) => {
+        const safePlayerCount = Math.max(2, Math.min(10, Number(playerCount) || 2));
         const freshDeck = generateDeck();
         const players = [];
 
-        for (let i = 0; i < playerCount; i++) {
+        for (let i = 0; i < safePlayerCount; i++) {
             players.push({
                 id: `p${i}`,
                 name: i === 0 ? playerName : (isOnline ? `Player ${i + 1}` : `Bot ${i}`),
@@ -139,11 +145,16 @@ export const useGameStore = create(
           });
       },
 
-      setNextPlayer: () => {
+      setNextPlayer: (steps = 1) => {
          set(state => {
-             let nextIndex = state.currentPlayerIndex + state.direction;
-             if (nextIndex < 0) nextIndex = state.players.length - 1;
-             if (nextIndex >= state.players.length) nextIndex = 0;
+             const totalPlayers = state.players.length;
+             if (totalPlayers === 0) return {};
+             let nextIndex = state.currentPlayerIndex;
+             for (let i = 0; i < steps; i++) {
+               nextIndex += state.direction;
+               if (nextIndex < 0) nextIndex = totalPlayers - 1;
+               if (nextIndex >= totalPlayers) nextIndex = 0;
+             }
              return { currentPlayerIndex: nextIndex };
          });
       },
@@ -152,6 +163,7 @@ export const useGameStore = create(
           set(state => {
               let players = [...state.players];
               let playerIndex = players.findIndex(p => p.id === playerId);
+              if (playerIndex === -1) return {};
               let hand = [...players[playerIndex].hand];
 
               cardsToPlay.forEach(c => {
@@ -177,14 +189,22 @@ export const useGameStore = create(
 
               if (drawAdded > 0) { effectToast = `+${drawAdded} COMBO!`; stackedCount += drawAdded; }
 
-              let nextIndex = state.currentPlayerIndex + direction;
-              if (nextIndex < 0) nextIndex = players.length - 1;
-              if (nextIndex >= players.length) nextIndex = 0;
+              const getNextIndex = (fromIndex, stepDirection, steps = 1) => {
+                const total = players.length;
+                if (total === 0) return 0;
+                let next = fromIndex;
+                for (let i = 0; i < steps; i++) {
+                  next += stepDirection;
+                  if (next < 0) next = total - 1;
+                  if (next >= total) next = 0;
+                }
+                return next;
+              };
+
+              let nextIndex = getNextIndex(state.currentPlayerIndex, direction, 1);
 
               if (skipNext) {
-                 nextIndex += direction;
-                 if (nextIndex < 0) nextIndex = players.length - 1;
-                 if (nextIndex >= players.length) nextIndex = 0;
+                 nextIndex = getNextIndex(nextIndex, direction, 1);
               }
 
               const newState = hand.length === 0
@@ -238,7 +258,20 @@ export const useGameStore = create(
 
       setMySocketId: (id) => set({ mySocketId: id }),
       setIsHost: (v) => set({ isHost: v }),
-      setWaitingPlayers: (players, maxPlayers) => set({ waitingPlayers: players, ...(maxPlayers ? { maxPlayers } : {}) }),
+      setWaitingPlayers: (players, maxPlayers, minPlayersToStart) => set((state) => {
+        const nextMaxPlayers = maxPlayers ? Math.max(2, Math.min(10, Number(maxPlayers))) : state.maxPlayers;
+        const desiredMinPlayers = minPlayersToStart ?? state.minPlayersToStart;
+        const nextMinPlayers = Math.max(2, Math.min(nextMaxPlayers, Number(desiredMinPlayers) || 2));
+        return {
+          waitingPlayers: players,
+          maxPlayers: nextMaxPlayers,
+          minPlayersToStart: nextMinPlayers,
+        };
+      }),
+      setMinPlayersToStart: (value) => set((state) => ({
+        minPlayersToStart: Math.max(2, Math.min(state.maxPlayers, Number(value) || 2)),
+      })),
+      setBotDifficulty: (difficulty) => set({ botDifficulty: difficulty }),
 
       syncGameState: (state) => set({
         deck: state.deck,
@@ -266,6 +299,8 @@ export const useGameStore = create(
           isOnline: false,
           isHost: false,
           mySocketId: null,
+          minPlayersToStart: 2,
+          botDifficulty: 'medium',
           menuView: 'MAIN',
       }),
     }),
@@ -289,6 +324,8 @@ export const useGameStore = create(
         mySocketId: state.mySocketId,
         waitingPlayers: state.waitingPlayers,
         maxPlayers: state.maxPlayers,
+        minPlayersToStart: state.minPlayersToStart,
+        botDifficulty: state.botDifficulty,
         menuView: state.menuView,
       }),
     }
