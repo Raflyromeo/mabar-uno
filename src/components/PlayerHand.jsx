@@ -8,11 +8,11 @@ import { playUnoSound, playWinSound } from '../lib/sounds';
 
 const isWildCard = (card) => card.value === 'Wild' || card.value === 'Draw4';
 
-function PlayGroupBar({ selectedCards, isSelectionValid, onPlay, onClear }) {
+function PlayGroupBar({ selectedCards, isSelectionValid, onPlay, onClear, t }) {
   return ReactDOM.createPortal(
-    <div className="fixed bottom-[clamp(135px,20vw,220px)] left-1/2 z-[9998] -translate-x-1/2 flex items-center gap-[clamp(10px,1.5vw,20px)] whitespace-nowrap rounded-full border-2 border-white bg-gradient-to-br from-yellow-400 to-amber-500 px-[clamp(14px,2.5vw,30px)] py-[clamp(6px,0.8vw,10px)] shadow-[0_10px_30px_rgba(250,204,21,0.6),0_4px_16px_rgba(0,0,0,0.5)]">
+    <div className="fixed bottom-[clamp(135px,20vw,220px)] left-1/2 z-[9998] -translate-x-1/2 flex max-w-[92vw] flex-wrap items-center justify-center gap-2 rounded-2xl border-2 border-white bg-gradient-to-br from-yellow-400 to-amber-500 px-4 py-2 shadow-[0_10px_30px_rgba(250,204,21,0.6),0_4px_16px_rgba(0,0,0,0.5)]">
       <span className="text-[clamp(11px,1.3vw,16px)] font-black tracking-wide text-black">
-        {selectedCards.length} Kartu Dipilih
+        {selectedCards.length} {t.selectedCards}
       </span>
 
       <button
@@ -24,21 +24,21 @@ function PlayGroupBar({ selectedCards, isSelectionValid, onPlay, onClear }) {
             : 'cursor-not-allowed bg-black/35 text-white/35 opacity-60'
         }`}
       >
-        Play Group
+        {t.playCards}
       </button>
 
       <button
         onClick={onClear}
-        className="px-1 text-[clamp(12px,1.3vw,16px)] font-bold text-black/55 transition-colors hover:text-black"
+        className="rounded-full border border-black/25 bg-black/10 px-2 py-1 text-[clamp(11px,1.1vw,14px)] font-bold text-black/70 transition-colors hover:bg-black/15 hover:text-black"
       >
-        ✕
+        {t.clearSelection}
       </button>
     </div>,
     document.body
   );
 }
 
-function DrawCardButton({ onClick, stackedCount }) {
+function DrawCardButton({ onClick, stackedCount, t }) {
   return ReactDOM.createPortal(
     <button
       onClick={onClick}
@@ -54,7 +54,7 @@ function DrawCardButton({ onClick, stackedCount }) {
         </span>
       )}
       <span className={`${stackedCount > 0 ? 'text-[clamp(8px,1vw,11px)]' : 'text-[clamp(10px,1.2vw,13px)]'} opacity-90`}>
-        {stackedCount > 0 ? 'AMBIL' : '🂠 AMBIL'}
+        {stackedCount > 0 ? t.draw : `🂠 ${t.draw}`}
       </span>
     </button>,
     document.body
@@ -62,7 +62,8 @@ function DrawCardButton({ onClick, stackedCount }) {
 }
 
 export default function PlayerHand({ playerId }) {
-  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno } = useGameStore();
+  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno, language, translations } = useGameStore();
+  const t = translations?.[language] || translations?.id;
 
   const player = players.find(p => p.id === playerId);
   const isMyTurn = players[currentPlayerIndex]?.id === playerId;
@@ -134,13 +135,8 @@ export default function PlayerHand({ playerId }) {
   const handleCardClick = (card) => {
       if (!isMyTurn) return;
       if (selectedCards.length === 0) {
-          const canPlayImmediately = isValidPlay([card], topCard, activeColor, stackedDrawCount, ruleset);
-          if (canPlayImmediately && !isWildCard(card)) {
-              handleCardPlay([card]);
-          } else {
-              setSelectedCards([card]);
-              setSelectionOrder([card.id]);
-          }
+          setSelectedCards([card]);
+          setSelectionOrder([card.id]);
       } else {
           toggleSelectCard(card);
       }
@@ -172,6 +168,7 @@ export default function PlayerHand({ playerId }) {
         <PlayGroupBar
           selectedCards={selectedCards}
           isSelectionValid={isSelectionValid}
+          t={t}
           onPlay={() => handleCardPlay(selectedCards)}
           onClear={() => {
             setSelectedCards([]);
@@ -189,6 +186,7 @@ export default function PlayerHand({ playerId }) {
         <DrawCardButton
           onClick={() => passTurn(playerId)}
           stackedCount={stackedDrawCount}
+          t={t}
         />
       )}
 
