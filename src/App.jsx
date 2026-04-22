@@ -11,16 +11,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, addBotToRoom, startGameFromRoom, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart } = useGameStore();
 
   const [hostSettings, setHostSettings] = useState(() => {
-    try { return JSON.parse(sessionStorage.getItem('hostSettings')) || { players: 4, ruleset: 'tongkrongan' }; } 
-    catch { return { players: 4, ruleset: 'tongkrongan' }; }
+    try { return JSON.parse(sessionStorage.getItem('hostSettings')) || { players: 4, minPlayersToStart: 2, ruleset: 'tongkrongan' }; } 
+    catch { return { players: 4, minPlayersToStart: 2, ruleset: 'tongkrongan' }; }
+  });
+  const [botSettings, setBotSettings] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('botSettings')) || { players: 4, difficulty: 'medium', ruleset: 'tongkrongan' }; }
+    catch { return { players: 4, difficulty: 'medium', ruleset: 'tongkrongan' }; }
   });
   const [inputCode, setInputCode] = useState('');
   const [playerName, setPlayerName] = useState(() => sessionStorage.getItem('playerName') || 'Player');
 
   useEffect(() => { sessionStorage.setItem('hostSettings', JSON.stringify(hostSettings)); }, [hostSettings]);
+  useEffect(() => { sessionStorage.setItem('botSettings', JSON.stringify(botSettings)); }, [botSettings]);
   useEffect(() => { sessionStorage.setItem('playerName', playerName); }, [playerName]);
 
   useSocketEvents({ setMenuView, playerName });
@@ -83,12 +88,7 @@ export default function App() {
                           <div className="pt-4 space-y-4">
                                <button 
                                   onClick={() => {
-                                      connectSocket();
-                                      socket.emit('create-room', {
-                                          playerName: playerName || 'Host',
-                                          maxPlayers: hostSettings.players,
-                                          ruleset: hostSettings.ruleset,
-                                      });
+                                      setMenuView('HOST_OPTIONS');
                                   }} 
                                   className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg py-4 px-8 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95"
                                >
@@ -101,7 +101,7 @@ export default function App() {
                                  Join Room
                               </button>
                               <button 
-                                 onClick={() => startGame({ playerCount: 4, ruleset: 'tongkrongan', isOnline: false, playerName: playerName || 'Guest' })}
+                                 onClick={() => setMenuView('BOT_SETUP')}
                                  className="w-full bg-transparent hover:bg-white/5 border border-transparent text-gray-400 hover:text-white font-bold text-sm py-4 px-8 rounded-full transition-colors"
                               >
                                  Play Solo (Vs Bots)
@@ -127,10 +127,27 @@ export default function App() {
                                   <input 
                                      type="range" min="2" max="10" 
                                      value={hostSettings.players}
-                                     onChange={(e) => setHostSettings({ ...hostSettings, players: parseInt(e.target.value) })}
+                                     onChange={(e) => {
+                                      const players = parseInt(e.target.value);
+                                      setHostSettings((prev) => ({
+                                        ...prev,
+                                        players,
+                                        minPlayersToStart: Math.max(2, Math.min(players, prev.minPlayersToStart)),
+                                      }));
+                                     }}
                                      className="w-full accent-emerald-500"
                                   />
                                   <div className="flex justify-between text-xs text-gray-500 px-2 mt-1 font-bold"><span>2</span><span>10</span></div>
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Min Players To Start ({hostSettings.minPlayersToStart})</label>
+                                  <input
+                                     type="range" min="2" max={hostSettings.players}
+                                     value={hostSettings.minPlayersToStart}
+                                     onChange={(e) => setHostSettings({ ...hostSettings, minPlayersToStart: parseInt(e.target.value) })}
+                                     className="w-full accent-yellow-400"
+                                  />
+                                  <div className="flex justify-between text-xs text-gray-500 px-2 mt-1 font-bold"><span>2</span><span>{hostSettings.players}</span></div>
                               </div>
                               
                               <div>
@@ -161,6 +178,7 @@ export default function App() {
                                       socket.emit('create-room', {
                                           playerName: playerName || 'Host',
                                           maxPlayers: hostSettings.players,
+                                          minPlayersToStart: hostSettings.minPlayersToStart,
                                           ruleset: hostSettings.ruleset,
                                       });
                                   }}
@@ -199,10 +217,10 @@ export default function App() {
 
                           <div className="px-8 sm:px-12 flex-1 overflow-hidden flex flex-col min-h-0">
                               <h3 className="text-sm font-bold text-gray-400 mb-3 flex justify-between shrink-0">
-                                  <span>PLAYERS ({waitingPlayers.length}/{hostSettings.players})</span>
-                                  {isHost && waitingPlayers.length < hostSettings.players 
+                                  <span>PLAYERS ({waitingPlayers.length}/{maxPlayers})</span>
+                                  {isHost && waitingPlayers.length < maxPlayers 
                                     ? <span className="cursor-pointer text-emerald-400 hover:text-emerald-300" onClick={() => socket.emit('add-bot', { code: roomCode })}>+ Add Bot</span>
-                                    : waitingPlayers.length >= hostSettings.players 
+                                    : waitingPlayers.length >= maxPlayers 
                                       ? <span className="text-gray-600 cursor-not-allowed">Room Full</span> 
                                       : null
                                   }
@@ -221,13 +239,83 @@ export default function App() {
 
                            <div className="px-8 sm:px-12 pb-10 pt-4 shrink-0">
                                <button 
-                                  disabled={waitingPlayers.length < 2 || !isHost}
+                                  disabled={waitingPlayers.length < minPlayersToStart || !isHost}
                                   onClick={() => socket.emit('start-game', { code: roomCode })} 
-                                  className={`w-full font-black text-xl py-4 px-8 rounded-full transition-all transform ${waitingPlayers.length >= 2 && isHost ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
+                                  className={`w-full font-black text-xl py-4 px-8 rounded-full transition-all transform ${waitingPlayers.length >= minPlayersToStart && isHost ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                                >
-                                  {!isHost ? 'WAITING FOR HOST...' : waitingPlayers.length < 2 ? 'WAITING FOR PLAYERS...' : 'START GAME'}
+                                  {!isHost ? 'WAITING FOR HOST...' : waitingPlayers.length < minPlayersToStart ? `WAITING FOR ${minPlayersToStart} PLAYERS...` : 'START GAME'}
                                </button>
                            </div>
+                      </motion.div>
+                  )}
+
+                  {menuView === 'BOT_SETUP' && (
+                      <motion.div
+                        key="bot_setup"
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        className="z-10 glass p-10 sm:p-14 rounded-[40px] text-left space-y-6 w-full max-w-lg border-t border-white/20 relative"
+                      >
+                        <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> Back</button>
+                        <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">Solo Setup</h2>
+                        <div className="space-y-6 pt-4">
+                          <div>
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Total Players ({botSettings.players})</label>
+                            <input
+                              type="range"
+                              min="2"
+                              max="10"
+                              value={botSettings.players}
+                              onChange={(e) => setBotSettings({ ...botSettings, players: parseInt(e.target.value) })}
+                              className="w-full accent-emerald-500"
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 px-2 mt-1 font-bold"><span>2</span><span>10</span></div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Bot Difficulty</label>
+                            <div className="grid grid-cols-3 gap-3">
+                              {['easy', 'medium', 'hard'].map((level) => (
+                                <button
+                                  key={level}
+                                  onClick={() => setBotSettings({ ...botSettings, difficulty: level })}
+                                  className={`rounded-xl border px-4 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
+                                    botSettings.difficulty === level ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.35)]' : 'border-white/15 bg-white/5 text-gray-200 hover:bg-white/10'
+                                  }`}
+                                >
+                                  {level}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Rule Set</label>
+                            <div className="grid grid-cols-2 gap-4">
+                              {['tongkrongan', 'official'].map((rule) => (
+                                <button
+                                  key={rule}
+                                  onClick={() => setBotSettings({ ...botSettings, ruleset: rule })}
+                                  className={`rounded-2xl border-2 p-4 text-left transition-all ${
+                                    botSettings.ruleset === rule ? 'border-indigo-400 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.35)]' : 'border-white/10 bg-white/5 hover:bg-white/10'
+                                  }`}
+                                >
+                                  <h3 className="font-bold text-white capitalize">{rule}</h3>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="pt-4">
+                          <button
+                            onClick={() => {
+                              setBotDifficulty(botSettings.difficulty);
+                              startGame({ playerCount: botSettings.players, ruleset: botSettings.ruleset, isOnline: false, playerName: playerName || 'Guest' });
+                            }}
+                            className="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.35)] transition-all transform hover:scale-105 active:scale-95"
+                          >
+                            START SOLO MATCH
+                          </button>
+                        </div>
                       </motion.div>
                   )}
 
