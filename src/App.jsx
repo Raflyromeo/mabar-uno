@@ -6,12 +6,12 @@ import InfoModal from './components/InfoModal';
 import { useGameStore } from './store/gameStore';
 import { useAI } from './hooks/useAI';
 import { useSocketEvents } from './hooks/useSocketEvents';
-import { socket, connectSocket, disconnectSocket } from './lib/socket';
+import { socket, connectSocket } from './lib/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart, language, setLanguage, translations } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart, language, setLanguage, translations, soundEnabled, setSoundEnabled } = useGameStore();
   const t = translations?.[language] || translations?.id;
   const difficultyOptions = [
     {
@@ -109,7 +109,7 @@ export default function App() {
                           <div className="pt-2">
                               <input 
                                  type="text" 
-                                 placeholder="Enter Your Name"
+                                 placeholder={t.enterName}
                                  value={playerName}
                                  onChange={(e) => setPlayerName(e.target.value.substring(0,12))}
                                  className="w-full glass bg-black/50 border border-white/20 rounded-2xl px-6 py-4 text-center text-xl font-bold text-white focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/50 transition-all uppercase tracking-widest shadow-inner"
@@ -149,12 +149,12 @@ export default function App() {
                          exit={{ opacity: 0, x: -100 }}
                          className="z-10 glass p-10 sm:p-14 rounded-[40px] text-left space-y-6 w-full max-w-lg border-t border-white/20 relative"
                       >
-                          <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> Back</button>
-                          <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">Host Options</h2>
+                          <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> {t.back}</button>
+                          <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">{t.hostOptions}</h2>
                           
                           <div className="space-y-6 pt-4">
                               <div>
-                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Max Players ({hostSettings.players})</label>
+                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.maxPlayers} ({hostSettings.players})</label>
                                   <input 
                                      type="range" min="2" max="10" 
                                      value={hostSettings.players}
@@ -171,7 +171,7 @@ export default function App() {
                                   <div className="flex justify-between text-xs text-gray-500 px-2 mt-1 font-bold"><span>2</span><span>10</span></div>
                               </div>
                               <div>
-                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Min Players To Start ({hostSettings.minPlayersToStart})</label>
+                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.minPlayersToStart} ({hostSettings.minPlayersToStart})</label>
                                   <input
                                      type="range" min="2" max={hostSettings.players}
                                      value={hostSettings.minPlayersToStart}
@@ -182,21 +182,21 @@ export default function App() {
                               </div>
                               
                               <div>
-                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Rule Set</label>
+                                  <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.ruleSet}</label>
                                   <div className="grid grid-cols-2 gap-4">
                                       <div 
                                          onClick={() => setHostSettings({ ...hostSettings, ruleset: 'tongkrongan' })}
                                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${hostSettings.ruleset === 'tongkrongan' ? 'border-purple-500 bg-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.4)]' : 'border-white/10 glass hover:bg-white/10'}`}
                                       >
                                           <h3 className="font-bold text-md text-white">Tongkrongan</h3>
-                                          <p className="text-xs text-gray-400 mt-2">Instant Wild, Stack +2, Multi-Card Play.</p>
+                                          <p className="text-xs text-gray-400 mt-2">{t.tongkronganDesc}</p>
                                       </div>
                                       <div 
                                          onClick={() => setHostSettings({ ...hostSettings, ruleset: 'official' })}
                                          className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${hostSettings.ruleset === 'official' ? 'border-indigo-500 bg-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.4)]' : 'border-white/10 glass hover:bg-white/10'}`}
                                       >
                                           <h3 className="font-bold text-md text-white">Official</h3>
-                                          <p className="text-xs text-gray-400 mt-2">Standard UNO rules.</p>
+                                          <p className="text-xs text-gray-400 mt-2">{t.officialDesc}</p>
                                       </div>
                                   </div>
                               </div>
@@ -215,7 +215,7 @@ export default function App() {
                                   }}
                                   className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
                                >
-                                 <span className="flex items-center justify-center gap-2">NEXT <ArrowRight className="w-5 h-5"/></span>
+                                 <span className="flex items-center justify-center gap-2">{t.next.toUpperCase()} <ArrowRight className="w-5 h-5"/></span>
                                </button>
                           </div>
                       </motion.div>
@@ -231,15 +231,15 @@ export default function App() {
                          style={{ maxHeight: 'min(90dvh, 680px)' }}
                       >
                           <div className="px-8 sm:px-12 pt-10 shrink-0">
-                              <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> Back</button>
-                              <h2 className="text-xl font-bold text-gray-300 tracking-widest uppercase mb-4">Room Code</h2>
+                              <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> {t.back}</button>
+                              <h2 className="text-xl font-bold text-gray-300 tracking-widest uppercase mb-4">{t.roomCode}</h2>
                               <div className="flex items-center justify-center gap-4 mb-6">
                                   <div className="bg-black/60 border-2 border-dashed border-emerald-500/50 rounded-2xl px-[clamp(1rem,3vw,2rem)] py-3 text-[clamp(2rem,6vw,3rem)] font-mono font-black text-emerald-400 tracking-[0.2em] shadow-inner">
                                       {roomCode}
                                   </div>
                                   <button 
                                      onClick={() => navigator.clipboard.writeText(roomCode)} 
-                                     className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white" title="Copy Code"
+                                     className="p-4 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white" title={t.copyCode}
                                   >
                                       <Clipboard className="w-5 h-5" />
                                   </button>
@@ -248,11 +248,11 @@ export default function App() {
 
                           <div className="px-8 sm:px-12 flex-1 overflow-hidden flex flex-col min-h-0">
                               <h3 className="text-sm font-bold text-gray-400 mb-3 flex justify-between shrink-0">
-                                  <span>PLAYERS ({waitingPlayers.length}/{maxPlayers})</span>
+                                  <span>{t.players.toUpperCase()} ({waitingPlayers.length}/{maxPlayers})</span>
                                   {isHost && waitingPlayers.length < maxPlayers 
-                                    ? <span className="cursor-pointer text-emerald-400 hover:text-emerald-300" onClick={() => socket.emit('add-bot', { code: roomCode })}>+ Add Bot</span>
+                                    ? <span className="cursor-pointer text-emerald-400 hover:text-emerald-300" onClick={() => socket.emit('add-bot', { code: roomCode })}>{t.addBot}</span>
                                     : waitingPlayers.length >= maxPlayers 
-                                      ? <span className="text-gray-600 cursor-not-allowed">Room Full</span> 
+                                      ? <span className="text-gray-600 cursor-not-allowed">{t.roomFull}</span> 
                                       : null
                                   }
                               </h3>
@@ -261,8 +261,8 @@ export default function App() {
                                      <div key={i} className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl">
                                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-sm shrink-0">{p.name.charAt(0)}</div>
                                          <span className="font-bold flex-1 text-left truncate">{p.name}</span>
-                                         {p.isHost && <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded shrink-0">HOST</span>}
-                                         {p.isAI && <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded shrink-0">BOT</span>}
+                                        {p.isHost && <span className="text-xs bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded shrink-0">{t.host}</span>}
+                                        {p.isAI && <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded shrink-0">{t.bot}</span>}
                                      </div>
                                  ))}
                              </div>
@@ -274,7 +274,7 @@ export default function App() {
                                   onClick={() => socket.emit('start-game', { code: roomCode })} 
                                   className={`w-full font-black text-xl py-4 px-8 rounded-full transition-all transform ${waitingPlayers.length >= minPlayersToStart && isHost ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_10px_30px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                                >
-                                  {!isHost ? 'WAITING FOR HOST...' : waitingPlayers.length < minPlayersToStart ? `WAITING FOR ${minPlayersToStart} PLAYERS...` : 'START GAME'}
+                                  {!isHost ? t.waitingForHost : waitingPlayers.length < minPlayersToStart ? t.waitingForPlayers.replace('{count}', minPlayersToStart) : t.startGame}
                                </button>
                            </div>
                       </motion.div>
@@ -288,11 +288,11 @@ export default function App() {
                         exit={{ opacity: 0, x: -100 }}
                         className="z-10 glass p-10 sm:p-14 rounded-[40px] text-left space-y-6 w-full max-w-lg border-t border-white/20 relative"
                       >
-                        <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> Back</button>
-                        <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">Solo Setup</h2>
+                        <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> {t.back}</button>
+                        <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">{t.soloSetup}</h2>
                         <div className="space-y-6 pt-4">
                           <div>
-                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Total Players ({botSettings.players})</label>
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.totalPlayers} ({botSettings.players})</label>
                             <input
                               type="range"
                               min="2"
@@ -320,7 +320,7 @@ export default function App() {
                             </div>
                           </div>
                           <div>
-                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Rule Set</label>
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.ruleSet}</label>
                             <div className="grid grid-cols-2 gap-4">
                               {['tongkrongan', 'official'].map((rule) => (
                                 <button
@@ -379,7 +379,7 @@ export default function App() {
                                           connectSocket();
                                           socket.emit('join-room', { code: inputCode, playerName: playerName || 'Guest' });
                                       } else {
-                                          alert('Enter a valid 6 digit code!');
+                          alert(t.invalidCode);
                                       }
                                   }}
                                  className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
@@ -402,27 +402,33 @@ export default function App() {
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 7V3M12 21v-4" />
                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 12a7 7 0 1 1-14 0" strokeDasharray="4 4" />
            </svg>
-           <h2 className="text-3xl font-black mb-4">Gunakan Mode Landscape untuk Pengalaman Terbaik</h2>
+           <h2 className="text-3xl font-black mb-4">{t.landscapeHint}</h2>
        </div>
 
        <div className="absolute top-[clamp(15px,3vw,30px)] left-[clamp(15px,3vw,30px)] z-[100] pointer-events-auto">
          <div className="flex items-center gap-2">
           <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="glass px-[clamp(12px,2vw,20px)] py-[clamp(6px,1vw,10px)] rounded-full text-white hover:bg-neutral-800/80 transition-colors flex items-center gap-2 text-[clamp(10px,1vw,14px)] border border-white/20 shadow-md transform hover:scale-105 active:scale-95">
-             <ArrowLeft className="w-4 h-4" /> LEAVE
+             <ArrowLeft className="w-4 h-4" /> {t.leave}
           </button>
           <div className="glass flex items-center gap-1 rounded-full border border-white/20 px-2 py-1 text-xs pointer-events-auto">
             <button onClick={() => setLanguage('id')} className={`rounded-full px-2 py-1 ${language === 'id' ? 'bg-emerald-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>ID</button>
             <button onClick={() => setLanguage('en')} className={`rounded-full px-2 py-1 ${language === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>EN</button>
+          </div>
+          <div className="glass flex items-center gap-2 rounded-full border border-white/20 px-2 py-1 text-xs pointer-events-auto">
+            <span className="text-gray-300">{t.soundLabel}</span>
+            <button onClick={() => setSoundEnabled(!soundEnabled)} className={`rounded-full px-2 py-1 ${soundEnabled ? 'bg-emerald-500 text-white' : 'bg-gray-600 text-white'}`}>
+              {soundEnabled ? t.on : t.off}
+            </button>
           </div>
          </div>
        </div>
 
        <div className="absolute top-[clamp(15px,3vw,30px)] right-[clamp(15px,3vw,30px)] z-[100] flex items-center gap-[clamp(8px,1vw,16px)] opacity-90 pointer-events-none">
           <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-emerald-300 flex items-center shadow-md">
-             ROOM: {roomCode || 'SOLO'}
+             {t.roomBadge}: {roomCode || t.soloBadge}
           </span>
           <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-indigo-300 flex items-center shadow-md">
-             RULES: {ruleset?.toUpperCase()}
+             {t.rulesBadge}: {ruleset?.toUpperCase()}
           </span>
           <div className="pointer-events-auto">
              <InfoModal />
@@ -430,6 +436,7 @@ export default function App() {
        </div>
 
        <GameBoard />
+       <Sidebar />
        
        {myPlayer && <PlayerHand playerId={myPlayer.id} />}
 
@@ -460,18 +467,18 @@ export default function App() {
                >
                   <div className="glass p-10 sm:p-16 rounded-[40px] text-center space-y-8 w-full max-w-lg">
                       <h2 className="text-5xl sm:text-7xl font-black font-montserrat text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] tracking-tighter">
-                          {winner === myPlayer?.id ? 'VICTORY!' : 'GAME OVER'}
+                          {winner === myPlayer?.id ? t.victory : t.gameOver}
                       </h2>
                       <div className="py-4">
                           <div className="inline-block px-6 py-3 rounded-full bg-white/10 border border-white/20 text-xl font-bold">
-                              WINNER: <span className={winner === myPlayer?.id ? 'text-yellow-400' : 'text-emerald-400'}>{players.find(p => p.id === winner)?.name}</span>
+                              {t.winner}: <span className={winner === myPlayer?.id ? 'text-yellow-400' : 'text-emerald-400'}>{players.find(p => p.id === winner)?.name}</span>
                           </div>
                       </div>
                        <button 
                           onClick={() => resetGame()}
                           className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95 mt-4"
                        >
-                          RETURN TO LOBBY
+                          {t.returnLobby}
                        </button>
                   </div>
                </motion.div>
