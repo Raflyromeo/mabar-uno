@@ -11,7 +11,31 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart, language, setLanguage, translations } = useGameStore();
+  const t = translations?.[language] || translations?.id;
+  const difficultyOptions = [
+    {
+      key: 'easy',
+      label: t.easyLabel,
+      idleClass: 'border-green-500/40 bg-green-500/10 text-green-200',
+      hoverClass: 'hover:bg-green-500/35 hover:border-green-400',
+      activeClass: 'border-green-400 bg-green-500/80 text-white shadow-[0_0_18px_rgba(34,197,94,0.45)]',
+    },
+    {
+      key: 'medium',
+      label: t.mediumLabel,
+      idleClass: 'border-amber-500/40 bg-amber-500/10 text-amber-100',
+      hoverClass: 'hover:bg-amber-500/35 hover:border-amber-400',
+      activeClass: 'border-amber-300 bg-amber-500/80 text-white shadow-[0_0_18px_rgba(245,158,11,0.45)]',
+    },
+    {
+      key: 'hard',
+      label: t.hardLabel,
+      idleClass: 'border-red-500/40 bg-red-500/10 text-red-200',
+      hoverClass: 'hover:bg-red-600/35 hover:border-red-400',
+      activeClass: 'border-red-400 bg-red-600/80 text-white shadow-[0_0_18px_rgba(220,38,38,0.45)]',
+    },
+  ];
 
   const [hostSettings, setHostSettings] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem('hostSettings')) || { players: 4, minPlayersToStart: 2, ruleset: 'tongkrongan' }; } 
@@ -52,6 +76,13 @@ export default function App() {
                   <div className="absolute bottom-1/4 right-1/4 w-[60vw] h-[60vw] bg-teal-800/40 rounded-full filter blur-[150px]"></div>
               </motion.div>
               
+              <div className="absolute top-[clamp(15px,3vw,30px)] left-[clamp(15px,3vw,30px)] z-[100] pointer-events-auto">
+                  <div className="flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-2 py-1 text-xs font-bold">
+                    <span className="text-gray-300">{t.languageLabel}</span>
+                    <button onClick={() => setLanguage('id')} className={`rounded-full px-2 py-1 transition-colors ${language === 'id' ? 'bg-emerald-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>ID</button>
+                    <button onClick={() => setLanguage('en')} className={`rounded-full px-2 py-1 transition-colors ${language === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>EN</button>
+                  </div>
+              </div>
               <div className="absolute top-[clamp(15px,3vw,30px)] right-[clamp(15px,3vw,30px)] z-[100]">
                   <InfoModal glass />
               </div>
@@ -92,19 +123,19 @@ export default function App() {
                                   }} 
                                   className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-lg py-4 px-8 rounded-full shadow-2xl transition-all transform hover:scale-105 active:scale-95"
                                >
-                                  Create Room (Host)
+                                 {t.createRoom}
                                </button>
                               <button 
                                  onClick={() => setMenuView('JOIN')}
                                  className="w-full glass hover:bg-white/10 border border-white/20 text-white font-bold text-lg py-4 px-8 rounded-full shadow-lg transition-all transform hover:scale-105 active:scale-95"
                               >
-                                 Join Room
+                                 {t.joinRoom}
                               </button>
                               <button 
                                  onClick={() => setMenuView('BOT_SETUP')}
                                  className="w-full bg-transparent hover:bg-white/5 border border-transparent text-gray-400 hover:text-white font-bold text-sm py-4 px-8 rounded-full transition-colors"
                               >
-                                 Play Solo (Vs Bots)
+                                 {t.soloBots}
                               </button>
                           </div>
                       </motion.div>
@@ -273,17 +304,17 @@ export default function App() {
                             <div className="flex justify-between text-xs text-gray-500 px-2 mt-1 font-bold"><span>2</span><span>10</span></div>
                           </div>
                           <div>
-                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">Bot Difficulty</label>
-                            <div className="grid grid-cols-3 gap-3">
-                              {['easy', 'medium', 'hard'].map((level) => (
+                            <label className="block text-sm font-bold text-gray-300 mb-3 uppercase tracking-wider">{t.botDifficulty}</label>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              {difficultyOptions.map((level) => (
                                 <button
-                                  key={level}
-                                  onClick={() => setBotSettings({ ...botSettings, difficulty: level })}
-                                  className={`rounded-xl border px-4 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
-                                    botSettings.difficulty === level ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 shadow-[0_0_18px_rgba(250,204,21,0.35)]' : 'border-white/15 bg-white/5 text-gray-200 hover:bg-white/10'
+                                  key={level.key}
+                                  onClick={() => setBotSettings({ ...botSettings, difficulty: level.key })}
+                                  className={`rounded-xl border px-4 py-3 text-sm font-bold tracking-wide transition-all ${
+                                    botSettings.difficulty === level.key ? level.activeClass : `${level.idleClass} ${level.hoverClass}`
                                   }`}
                                 >
-                                  {level}
+                                  {level.label}
                                 </button>
                               ))}
                             </div>
@@ -313,7 +344,7 @@ export default function App() {
                             }}
                             className="w-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.35)] transition-all transform hover:scale-105 active:scale-95"
                           >
-                            START SOLO MATCH
+                            {t.startSolo}
                           </button>
                         </div>
                       </motion.div>
@@ -328,16 +359,16 @@ export default function App() {
                          className="z-10 glass p-10 sm:p-14 rounded-[40px] text-center space-y-6 w-full max-w-md border-t border-white/20 relative"
                       >
                           <button onClick={() => setMenuView('MAIN')} className="absolute top-6 right-6 text-gray-400 hover:text-white flex items-center gap-2 transition-colors"><ArrowLeft className="w-4 h-4"/> Back</button>
-                          <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">Join Room</h2>
+                          <h2 className="text-3xl font-black font-montserrat tracking-tight mb-2">{t.joinTitle}</h2>
                           
-                          <div className="pt-4">
+                          <div className="pt-4 flex justify-center">
                               <input 
                                  type="text" 
-                                 placeholder="6-DIGIT CODE"
+                                 placeholder={t.joinPlaceholder}
                                  value={inputCode}
                                  onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                                  maxLength={6}
-                                 className="w-full bg-black/40 border border-white/20 rounded-2xl px-6 py-4 text-center text-3xl font-bold tracking-[0.5em] text-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all font-mono"
+                                 className="w-full max-w-[20rem] bg-black/40 border border-white/20 rounded-2xl px-4 sm:px-6 py-4 text-center text-2xl sm:text-3xl font-bold tracking-[0.35em] sm:tracking-[0.5em] text-white placeholder:text-sm sm:placeholder:text-base placeholder:tracking-normal focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 transition-all font-mono"
                               />
                           </div>
 
@@ -353,7 +384,7 @@ export default function App() {
                                   }}
                                  className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95"
                               >
-                                 <span className="flex items-center justify-center gap-2">CONNECT <ArrowRight className="w-5 h-5"/></span>
+                                 <span className="flex items-center justify-center gap-2">{t.connect} <ArrowRight className="w-5 h-5"/></span>
                               </button>
                           </div>
                       </motion.div>
@@ -375,9 +406,15 @@ export default function App() {
        </div>
 
        <div className="absolute top-[clamp(15px,3vw,30px)] left-[clamp(15px,3vw,30px)] z-[100] pointer-events-auto">
+         <div className="flex items-center gap-2">
           <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="glass px-[clamp(12px,2vw,20px)] py-[clamp(6px,1vw,10px)] rounded-full text-white hover:bg-neutral-800/80 transition-colors flex items-center gap-2 text-[clamp(10px,1vw,14px)] border border-white/20 shadow-md transform hover:scale-105 active:scale-95">
              <ArrowLeft className="w-4 h-4" /> LEAVE
           </button>
+          <div className="glass flex items-center gap-1 rounded-full border border-white/20 px-2 py-1 text-xs pointer-events-auto">
+            <button onClick={() => setLanguage('id')} className={`rounded-full px-2 py-1 ${language === 'id' ? 'bg-emerald-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>ID</button>
+            <button onClick={() => setLanguage('en')} className={`rounded-full px-2 py-1 ${language === 'en' ? 'bg-indigo-500 text-white' : 'text-gray-300 hover:bg-white/10'}`}>EN</button>
+          </div>
+         </div>
        </div>
 
        <div className="absolute top-[clamp(15px,3vw,30px)] right-[clamp(15px,3vw,30px)] z-[100] flex items-center gap-[clamp(8px,1vw,16px)] opacity-90 pointer-events-none">
