@@ -56,8 +56,13 @@ export const isValidPlay = (playedCards, topCard, activeColor, stackedDrawCount,
         return false;
       }
 
+      const isNumberGroup = /^\d+$/.test(groupValue);
       const matchesColor = playedCards.some(c => c.color === activeColor);
       const matchesValue = groupValue === topCard.value;
+      if (isNumberGroup) {
+        // Tongkrongan: number stacks can start from same value even with mixed colors.
+        return matchesValue || matchesColor;
+      }
       return matchesColor || matchesValue;
     }
 
