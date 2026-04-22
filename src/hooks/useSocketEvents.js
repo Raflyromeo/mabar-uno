@@ -6,7 +6,7 @@ import { generateDeck } from '../utils/gameLogic';
 export function useSocketEvents({ setMenuView, playerName }) {
   const {
     setMySocketId, setIsHost, setWaitingPlayers,
-    syncGameState,
+    syncGameState, addChatMessage, clearChatMessages,
     players, currentPlayerIndex, deck, discardPile,
     activeColor, direction, stackedDrawCount, winner,
     isHost, mySocketId, ruleset
@@ -21,6 +21,7 @@ export function useSocketEvents({ setMenuView, playerName }) {
       setIsHost(true);
       setWaitingPlayers(room.players, room.maxPlayers, room.minPlayersToStart);
       useGameStore.setState({ roomCode: code, ruleset: room.ruleset, isOnline: true });
+      clearChatMessages();
       setMenuView('HOST_WAITING');
     });
 
@@ -28,6 +29,7 @@ export function useSocketEvents({ setMenuView, playerName }) {
       setIsHost(false);
       setWaitingPlayers(room.players, room.maxPlayers, room.minPlayersToStart);
       useGameStore.setState({ roomCode: code, ruleset: room.ruleset, isOnline: true });
+      clearChatMessages();
       setMenuView('HOST_WAITING');
     });
 
@@ -97,6 +99,10 @@ export function useSocketEvents({ setMenuView, playerName }) {
       }
     });
 
+    socket.on('chat-message', (message) => {
+      addChatMessage(message);
+    });
+
     return () => {
       socket.off('connect');
       socket.off('room-created');
@@ -107,6 +113,7 @@ export function useSocketEvents({ setMenuView, playerName }) {
       socket.off('state-synced');
       socket.off('action-received');
       socket.off('host-changed');
+      socket.off('chat-message');
     };
   }, []);
 
