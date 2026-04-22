@@ -6,8 +6,7 @@ import { generateDeck } from '../utils/gameLogic';
 export function useSocketEvents({ setMenuView, playerName }) {
   const {
     setMySocketId, setIsHost, setWaitingPlayers,
-    syncGameState, startGameFromRoom,
-    playCards, drawCards, setNextPlayer, passTurn,
+    syncGameState,
     players, currentPlayerIndex, deck, discardPile,
     activeColor, direction, stackedDrawCount, winner,
     isHost, mySocketId, ruleset
@@ -20,14 +19,14 @@ export function useSocketEvents({ setMenuView, playerName }) {
 
     socket.on('room-created', ({ code, room }) => {
       setIsHost(true);
-      setWaitingPlayers(room.players, room.maxPlayers);
+      setWaitingPlayers(room.players, room.maxPlayers, room.minPlayersToStart);
       useGameStore.setState({ roomCode: code, ruleset: room.ruleset, isOnline: true });
       setMenuView('HOST_WAITING');
     });
 
     socket.on('room-joined', ({ code, room }) => {
       setIsHost(false);
-      setWaitingPlayers(room.players, room.maxPlayers);
+      setWaitingPlayers(room.players, room.maxPlayers, room.minPlayersToStart);
       useGameStore.setState({ roomCode: code, ruleset: room.ruleset, isOnline: true });
       setMenuView('HOST_WAITING');
     });
@@ -36,8 +35,8 @@ export function useSocketEvents({ setMenuView, playerName }) {
       alert(message);
     });
 
-    socket.on('lobby-updated', ({ players, maxPlayers }) => {
-      setWaitingPlayers(players, maxPlayers);
+    socket.on('lobby-updated', ({ players, maxPlayers, minPlayersToStart }) => {
+      setWaitingPlayers(players, maxPlayers, minPlayersToStart);
     });
 
     socket.on('game-starting', ({ players: lobbyPlayers, ruleset }) => {
@@ -112,12 +111,10 @@ export function useSocketEvents({ setMenuView, playerName }) {
   }, []);
 
   useEffect(() => {
-    if (!useGameStore.getState().isOnline) return;
-    if (!useGameStore.getState().isHost) return;
-    if (!useGameStore.getState().gameStarted) return;
-
-    const code = useGameStore.getState().roomCode;
     const store = useGameStore.getState();
+    if (!store.isOnline || !store.isHost || !store.gameStarted) return;
+
+    const code = store.roomCode;
     const state = {
       deck: store.deck,
       discardPile: store.discardPile,
