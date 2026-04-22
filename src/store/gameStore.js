@@ -30,9 +30,11 @@ export const useGameStore = create(
       soundEnabled: true,
       chatMessages: [],
       menuView: 'MAIN',
+      isChatOpen: false,
       translations,
 
       setMenuView: (view) => set({ menuView: view }),
+      setIsChatOpen: (open) => set({ isChatOpen: Boolean(open) }),
       setLanguage: (language) => set({ language: language === 'en' ? 'en' : 'id' }),
       setSoundEnabled: (enabled) => set({ soundEnabled: Boolean(enabled) }),
       addChatMessage: (message) => set((state) => ({ chatMessages: [...state.chatMessages, message] })),
@@ -335,6 +337,7 @@ export const useGameStore = create(
           botDifficulty: 'medium',
           chatMessages: [],
           menuView: 'MAIN',
+          isChatOpen: false,
       }),
     }),
     {
