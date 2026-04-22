@@ -10,71 +10,26 @@ const isWildCard = (card) => card.value === 'Wild' || card.value === 'Draw4';
 
 function PlayGroupBar({ selectedCards, isSelectionValid, onPlay, onClear }) {
   return ReactDOM.createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 'clamp(130px, 20vw, 220px)',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 9998,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'clamp(10px,1.5vw,20px)',
-        background: 'linear-gradient(135deg, #facc15, #f59e0b)',
-        padding: 'clamp(6px,0.8vw,10px) clamp(16px,2.5vw,30px)',
-        borderRadius: '999px',
-        border: '3px solid white',
-        boxShadow: '0 10px 30px rgba(250,204,21,0.6), 0 4px 16px rgba(0,0,0,0.5)',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <span style={{
-        fontWeight: 900,
-        color: 'black',
-        fontSize: 'clamp(11px,1.3vw,16px)',
-        letterSpacing: '0.03em',
-      }}>
+    <div className="fixed bottom-[clamp(135px,20vw,220px)] left-1/2 z-[9998] -translate-x-1/2 flex items-center gap-[clamp(10px,1.5vw,20px)] whitespace-nowrap rounded-full border-2 border-white bg-gradient-to-br from-yellow-400 to-amber-500 px-[clamp(14px,2.5vw,30px)] py-[clamp(6px,0.8vw,10px)] shadow-[0_10px_30px_rgba(250,204,21,0.6),0_4px_16px_rgba(0,0,0,0.5)]">
+      <span className="text-[clamp(11px,1.3vw,16px)] font-black tracking-wide text-black">
         {selectedCards.length} Kartu Dipilih
       </span>
 
       <button
         onClick={onPlay}
         disabled={!isSelectionValid}
-        style={{
-          fontWeight: 700,
-          padding: 'clamp(5px,0.8vw,9px) clamp(12px,1.8vw,22px)',
-          borderRadius: '999px',
-          fontSize: 'clamp(11px,1.2vw,15px)',
-          border: 'none',
-          cursor: isSelectionValid ? 'pointer' : 'not-allowed',
-          background: isSelectionValid ? 'black' : 'rgba(0,0,0,0.35)',
-          color: isSelectionValid ? 'white' : 'rgba(255,255,255,0.35)',
-          opacity: isSelectionValid ? 1 : 0.6,
-          transition: 'transform 0.15s, background 0.15s',
-          boxShadow: isSelectionValid ? '0 4px 12px rgba(0,0,0,0.4)' : 'none',
-        }}
-        onMouseEnter={e => { if (isSelectionValid) e.currentTarget.style.transform = 'scale(1.07)'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-        onMouseDown={e => { if (isSelectionValid) e.currentTarget.style.transform = 'scale(0.95)'; }}
-        onMouseUp={e => { if (isSelectionValid) e.currentTarget.style.transform = 'scale(1.07)'; }}
+        className={`rounded-full px-[clamp(12px,1.8vw,22px)] py-[clamp(5px,0.8vw,9px)] text-[clamp(11px,1.2vw,15px)] font-bold transition-transform ${
+          isSelectionValid
+            ? 'bg-black text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)] hover:scale-105 active:scale-95'
+            : 'cursor-not-allowed bg-black/35 text-white/35 opacity-60'
+        }`}
       >
         Play Group
       </button>
 
       <button
         onClick={onClear}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          fontWeight: 700,
-          color: 'rgba(0,0,0,0.55)',
-          fontSize: 'clamp(12px,1.3vw,16px)',
-          padding: '0 4px',
-          transition: 'color 0.15s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.color = 'black'; }}
-        onMouseLeave={e => { e.currentTarget.style.color = 'rgba(0,0,0,0.55)'; }}
+        className="px-1 text-[clamp(12px,1.3vw,16px)] font-bold text-black/55 transition-colors hover:text-black"
       >
         ✕
       </button>
@@ -87,46 +42,18 @@ function DrawCardButton({ onClick, stackedCount }) {
   return ReactDOM.createPortal(
     <button
       onClick={onClick}
-      style={{
-        position: 'fixed',
-        bottom: 'clamp(130px, 20vw, 220px)',
-        right: 'clamp(12px, 3vw, 28px)',
-        zIndex: 9997,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '4px',
-        background: stackedCount > 0
-          ? 'linear-gradient(135deg, #ef4444, #be123c)'
-          : 'linear-gradient(135deg, #1a2e20, #0f1f14)',
-        border: stackedCount > 0 ? '3px solid #fca5a5' : '2px solid rgba(255,255,255,0.2)',
-        borderRadius: '16px',
-        padding: 'clamp(10px,2vw,16px) clamp(12px,2.5vw,20px)',
-        color: 'white',
-        fontWeight: 900,
-        fontSize: 'clamp(10px,1.2vw,13px)',
-        letterSpacing: '0.05em',
-        cursor: 'pointer',
-        boxShadow: stackedCount > 0
-          ? '0 0 20px rgba(239,68,68,0.6), 0 8px 20px rgba(0,0,0,0.5)'
-          : '0 8px 20px rgba(0,0,0,0.5)',
-        transition: 'transform 0.15s',
-        touchAction: 'manipulation',
-        minWidth: 'clamp(56px, 8vw, 80px)',
-        textAlign: 'center',
-      }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.07)'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
-      onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.95)'; }}
-      onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+      className={`fixed bottom-[clamp(135px,20vw,220px)] right-[clamp(12px,3vw,28px)] z-[9997] flex min-w-[clamp(56px,8vw,80px)] touch-manipulation flex-col items-center justify-center gap-1 rounded-2xl px-[clamp(12px,2.5vw,20px)] py-[clamp(10px,2vw,16px)] text-center text-[clamp(10px,1.2vw,13px)] font-black tracking-wider text-white transition-transform hover:scale-105 active:scale-95 ${
+        stackedCount > 0
+          ? 'border-2 border-red-300 bg-gradient-to-br from-red-500 to-rose-700 shadow-[0_0_20px_rgba(239,68,68,0.6),0_8px_20px_rgba(0,0,0,0.5)]'
+          : 'border border-white/20 bg-gradient-to-br from-[#1a2e20] to-[#0f1f14] shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
+      }`}
     >
       {stackedCount > 0 && (
-        <span style={{ fontSize: 'clamp(16px,3vw,22px)', fontWeight: 900, lineHeight: 1 }}>
+        <span className="text-[clamp(16px,3vw,22px)] font-black leading-none">
           +{stackedCount}
         </span>
       )}
-      <span style={{ fontSize: stackedCount > 0 ? 'clamp(8px,1vw,11px)' : 'clamp(10px,1.2vw,13px)', opacity: 0.85 }}>
+      <span className={`${stackedCount > 0 ? 'text-[clamp(8px,1vw,11px)]' : 'text-[clamp(10px,1.2vw,13px)]'} opacity-90`}>
         {stackedCount > 0 ? 'AMBIL' : '🂠 AMBIL'}
       </span>
     </button>,
@@ -142,6 +69,7 @@ export default function PlayerHand({ playerId }) {
   const topCard = discardPile[discardPile.length - 1];
 
   const [selectedCards, setSelectedCards] = useState([]);
+  const [selectionOrder, setSelectionOrder] = useState([]);
   const [unoCalled, setUnoCalled] = useState(false);
   const [pendingWild, setPendingWild] = useState(null);
   const winSoundFired = useRef(false);
@@ -158,6 +86,12 @@ export default function PlayerHand({ playerId }) {
     if (player?.hand?.length !== 1) setUnoCalled(false);
   }, [player?.hand?.length]);
 
+  useEffect(() => {
+    if (selectedCards.length === 0) {
+      setSelectionOrder([]);
+    }
+  }, [selectedCards.length]);
+
   if (!player) return null;
 
   const toggleSelectCard = (card) => {
@@ -165,24 +99,29 @@ export default function PlayerHand({ playerId }) {
       const isSelected = selectedCards.find(c => c.id === card.id);
       if (isSelected) {
           setSelectedCards(selectedCards.filter(c => c.id !== card.id));
+          setSelectionOrder((prev) => prev.filter((id) => id !== card.id));
           return;
       }
       if (selectedCards.length > 0 && selectedCards[0].value !== card.value) {
           setSelectedCards([card]);
+          setSelectionOrder([card.id]);
       } else {
           setSelectedCards([...selectedCards, card]);
+          setSelectionOrder((prev) => [...prev, card.id]);
       }
   };
 
   const commitPlay = (cards, color = null) => {
       playCards(playerId, cards, color);
       setSelectedCards([]);
+      setSelectionOrder([]);
       setPendingWild(null);
   };
 
   const handleCardPlay = (cards) => {
       if (!isValidPlay(cards, topCard, activeColor, stackedDrawCount, ruleset)) {
           setSelectedCards([]);
+          setSelectionOrder([]);
           return;
       }
       if (cards.some(isWildCard)) {
@@ -200,6 +139,7 @@ export default function PlayerHand({ playerId }) {
               handleCardPlay([card]);
           } else {
               setSelectedCards([card]);
+              setSelectionOrder([card.id]);
           }
       } else {
           toggleSelectCard(card);
@@ -233,7 +173,10 @@ export default function PlayerHand({ playerId }) {
           selectedCards={selectedCards}
           isSelectionValid={isSelectionValid}
           onPlay={() => handleCardPlay(selectedCards)}
-          onClear={() => setSelectedCards([])}
+          onClear={() => {
+            setSelectedCards([]);
+            setSelectionOrder([]);
+          }}
         />
       )}
 
@@ -262,6 +205,7 @@ export default function PlayerHand({ playerId }) {
         {player.hand.map((card, index) => {
             const isSelected = selectedCards.find(c => c.id === card.id) !== undefined;
             const total = player.hand.length;
+            const selectedOrderIndex = selectionOrder.indexOf(card.id);
             
             const overlapCSS = index === 0 ? 'ml-0' : (total > 15 ? '-ml-[clamp(30px,6vh,50px)]' : (total > 8 ? '-ml-[clamp(25px,5vh,40px)]' : '-ml-[clamp(20px,4vh,30px)]'));
 
@@ -275,7 +219,7 @@ export default function PlayerHand({ playerId }) {
                   isSelected={isSelected}
                   onClick={() => handleCardClick(card)}
                   className={`w-[clamp(55px,20vh,96px)] aspect-[20/29] flex-shrink-0 ${overlapCSS}`}
-                  style={{ zIndex: isSelected ? 50 : undefined }}
+                  style={{ zIndex: isSelected ? (100 + selectedOrderIndex) : undefined }}
               />
             );
         })}
