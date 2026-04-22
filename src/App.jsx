@@ -429,9 +429,7 @@ export default function App() {
             <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-indigo-300 flex items-center shadow-md">
               {t.rulesBadge}: {ruleset?.toUpperCase()}
             </span>
-            <div className="pointer-events-auto">
-              <InfoModal glass />
-            </div>
+            {/* InfoModal hanya tersedia di main menu */}
           </div>
          </div>
        </div>
