@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { generateDeck } from '../utils/gameLogic';
+import { generateDeck, fisherYatesShuffle } from '../utils/gameLogic';
 import { socket } from '../lib/socket';
 
 export const useGameStore = create(
@@ -25,9 +25,49 @@ export const useGameStore = create(
       maxPlayers: 10,
       minPlayersToStart: 2,
       botDifficulty: 'medium',
+      language: 'id',
       menuView: 'MAIN',
+      translations: {
+        id: {
+          playCards: 'Keluarkan Kartu',
+          selectedCards: 'Kartu Dipilih',
+          clearSelection: 'Batal',
+          draw: 'AMBIL',
+          createRoom: 'Buat Room (Host)',
+          joinRoom: 'Gabung Room',
+          soloBots: 'Main Solo (Vs Bot)',
+          joinTitle: 'Gabung Room',
+          joinPlaceholder: 'Kode 6 Digit',
+          connect: 'SAMBUNG',
+          botDifficulty: 'Tingkat Bot',
+          startSolo: 'MULAI MATCH SOLO',
+          languageLabel: 'Bahasa',
+          easyLabel: 'Anak TK Friendly',
+          mediumLabel: 'Anak Tongkrongan',
+          hardLabel: 'Sepuh Uno',
+        },
+        en: {
+          playCards: 'Play Cards',
+          selectedCards: 'Selected',
+          clearSelection: 'Clear',
+          draw: 'DRAW',
+          createRoom: 'Create Room (Host)',
+          joinRoom: 'Join Room',
+          soloBots: 'Play Solo (Vs Bots)',
+          joinTitle: 'Join Room',
+          joinPlaceholder: '6-digit code',
+          connect: 'CONNECT',
+          botDifficulty: 'Bot Difficulty',
+          startSolo: 'START SOLO MATCH',
+          languageLabel: 'Language',
+          easyLabel: 'Casual',
+          mediumLabel: 'Competitive',
+          hardLabel: 'Hardcore',
+        },
+      },
 
       setMenuView: (view) => set({ menuView: view }),
+      setLanguage: (language) => set({ language: language === 'en' ? 'en' : 'id' }),
 
       createRoom: (settings, hostName) => set(() => {
           const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -129,7 +169,7 @@ export const useGameStore = create(
               for (let i = 0; i < amount; i++) {
                   if (deck.length === 0) {
                       const top = discard.pop();
-                      deck.push(...discard.sort(() => Math.random() - 0.5));
+                      deck.push(...fisherYatesShuffle(discard));
                       discard.length = 0;
                       discard.push(top);
                   }
@@ -301,6 +341,7 @@ export const useGameStore = create(
           mySocketId: null,
           minPlayersToStart: 2,
           botDifficulty: 'medium',
+          language: 'id',
           menuView: 'MAIN',
       }),
     }),
@@ -326,6 +367,7 @@ export const useGameStore = create(
         maxPlayers: state.maxPlayers,
         minPlayersToStart: state.minPlayersToStart,
         botDifficulty: state.botDifficulty,
+        language: state.language,
         menuView: state.menuView,
       }),
     }
