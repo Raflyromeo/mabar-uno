@@ -62,7 +62,7 @@ function DrawCardButton({ onClick, stackedCount, t }) {
 }
 
 export default function PlayerHand({ playerId }) {
-  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno, language, translations } = useGameStore();
+  const { players, currentPlayerIndex, activeColor, discardPile, stackedDrawCount, playCards, passTurn, ruleset, winner, callUno, language, translations, drawCards, soundEnabled } = useGameStore();
   const t = translations?.[language] || translations?.id;
 
   const player = players.find(p => p.id === playerId);
@@ -74,18 +74,44 @@ export default function PlayerHand({ playerId }) {
   const [unoCalled, setUnoCalled] = useState(false);
   const [pendingWild, setPendingWild] = useState(null);
   const winSoundFired = useRef(false);
+  const unoPenaltyTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (winner && !winSoundFired.current) {
       winSoundFired.current = true;
-      playWinSound();
+      if (soundEnabled) playWinSound();
     }
     if (!winner) winSoundFired.current = false;
-  }, [winner]);
+  }, [winner, soundEnabled]);
 
   useEffect(() => {
     if (player?.hand?.length !== 1) setUnoCalled(false);
   }, [player?.hand?.length]);
+
+  useEffect(() => {
+    if (!player) return;
+    if (winner) {
+      if (unoPenaltyTimeoutRef.current) clearTimeout(unoPenaltyTimeoutRef.current);
+      unoPenaltyTimeoutRef.current = null;
+      return;
+    }
+    if (player.hand.length === 1 && !unoCalled) {
+      if (unoPenaltyTimeoutRef.current) clearTimeout(unoPenaltyTimeoutRef.current);
+      unoPenaltyTimeoutRef.current = setTimeout(() => {
+        drawCards(playerId, 2);
+        useGameStore.setState({ toastMessage: `UNO +2` });
+      }, 5000);
+    } else if (unoPenaltyTimeoutRef.current) {
+      clearTimeout(unoPenaltyTimeoutRef.current);
+      unoPenaltyTimeoutRef.current = null;
+    }
+
+    return () => {
+      if (unoPenaltyTimeoutRef.current) {
+        clearTimeout(unoPenaltyTimeoutRef.current);
+      }
+    };
+  }, [player?.hand?.length, unoCalled, winner, playerId, drawCards, player]);
 
   useEffect(() => {
     if (selectedCards.length === 0) {
@@ -151,8 +177,12 @@ export default function PlayerHand({ playerId }) {
   const handleUnoCall = () => {
     if (player.hand.length === 1 && !unoCalled) {
       setUnoCalled(true);
+      if (unoPenaltyTimeoutRef.current) {
+        clearTimeout(unoPenaltyTimeoutRef.current);
+        unoPenaltyTimeoutRef.current = null;
+      }
       callUno(playerId);
-      playUnoSound();
+      if (soundEnabled) playUnoSound();
     }
   };
 
@@ -195,7 +225,7 @@ export default function PlayerHand({ playerId }) {
           onClick={handleUnoCall}
           className="mb-3 pointer-events-auto animate-bounce bg-gradient-to-br from-red-500 to-red-700 hover:from-red-400 hover:to-red-600 text-white font-black text-[clamp(14px,2vw,22px)] px-[clamp(20px,3vw,36px)] py-[clamp(8px,1vw,12px)] rounded-full border-[3px] border-yellow-300 shadow-[0_0_30px_rgba(239,68,68,0.8),0_0_60px_rgba(239,68,68,0.4)] tracking-widest transition-all hover:scale-110 active:scale-95"
         >
-          UNO!
+          {t.uno}
         </button>
       )}
 
