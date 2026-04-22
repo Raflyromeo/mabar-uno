@@ -4,7 +4,7 @@ import { socket } from '../lib/socket';
 import { MessageCircle, X } from 'lucide-react';
 
 export default function Sidebar() {
-    const { players, currentPlayerIndex, roomCode, chatMessages, language, translations } = useGameStore();
+    const { players, currentPlayerIndex, roomCode, chatMessages, language, translations, isOnline } = useGameStore();
     const t = translations?.[language] || translations?.id;
     const [chatOpen, setChatOpen] = useState(false);
     const [message, setMessage] = useState('');
@@ -13,6 +13,11 @@ export default function Sidebar() {
       () => [...chatMessages].sort((a, b) => a.timestamp - b.timestamp).slice(-60),
       [chatMessages]
     );
+    const realPlayersCount = useMemo(
+      () => players.filter((p) => !p.isAI).length,
+      [players]
+    );
+    const showChat = isOnline && realPlayersCount > 1;
 
     const sendMessage = () => {
       const trimmed = message.trim();
@@ -23,15 +28,17 @@ export default function Sidebar() {
 
     return (
       <>
-        <button
-          onClick={() => setChatOpen((v) => !v)}
-          className="absolute right-4 bottom-4 z-[120] flex items-center gap-2 rounded-full border border-white/25 bg-black/60 px-4 py-2 text-sm font-bold text-white backdrop-blur hover:bg-black/80"
-        >
-          {chatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
-          {t.chat}
-        </button>
+        {showChat && (
+          <button
+            onClick={() => setChatOpen((v) => !v)}
+            className="absolute right-5 bottom-5 z-[120] flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-md hover:bg-black/35"
+          >
+            {chatOpen ? <X className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
+            {t.chat}
+          </button>
+        )}
 
-        <div className="absolute left-6 top-6 glass rounded-2xl p-4 w-64 hidden sm:block pointer-events-none">
+        <div className="absolute left-4 top-[76px] rounded-2xl border border-white/10 bg-black/20 p-4 w-64 hidden sm:block pointer-events-none backdrop-blur-md">
             <h2 className="text-xl font-black font-montserrat tracking-tight mb-4 flex items-center gap-2 drop-shadow-md">
                 {t.roomBadge}
                 <span className="bg-white text-dark-bg px-2 rounded text-sm tracking-widest">{roomCode || '------'}</span>
@@ -59,8 +66,8 @@ export default function Sidebar() {
             </div>
         </div>
 
-        {chatOpen && (
-          <div className="absolute right-4 bottom-20 z-[130] w-[min(92vw,340px)] rounded-2xl border border-white/20 bg-[#0b1510]/90 p-3 backdrop-blur-md">
+        {showChat && chatOpen && (
+          <div className="absolute right-5 bottom-20 z-[130] w-[min(92vw,340px)] rounded-2xl border border-white/10 bg-black/20 p-3 backdrop-blur-md">
             <h3 className="mb-2 text-sm font-black text-white">{t.chat}</h3>
             <div className="mb-3 h-56 overflow-y-auto rounded-xl border border-white/10 bg-black/25 p-2 space-y-2">
               {orderedMessages.length === 0 ? (
