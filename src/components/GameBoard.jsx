@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { socket } from '../lib/socket';
 
 export default function GameBoard() {
-  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex, isOnline, mySocketId, language, translations, isChatOpen } = useGameStore();
+  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex, isOnline, mySocketId, language, translations } = useGameStore();
   const t = translations?.[language] || translations?.id;
 
   const handleDraw = () => {
@@ -124,7 +124,7 @@ export default function GameBoard() {
           })}
       </div>
 
-      <div className={`relative flex items-center justify-center gap-[clamp(20px,10vw,100px)] z-40 w-full px-4 shrink-0 transition-all duration-300 ${isChatOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      <div className="relative flex items-center justify-center gap-[clamp(20px,10vw,100px)] z-40 w-full px-4 shrink-0">
 
           <div className="relative flex flex-col items-center justify-center">
               <motion.div
