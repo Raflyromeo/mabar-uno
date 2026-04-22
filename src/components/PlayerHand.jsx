@@ -42,7 +42,7 @@ function DrawCardButton({ onClick, stackedCount, t }) {
   return ReactDOM.createPortal(
     <button
       onClick={onClick}
-      className={`fixed bottom-[clamp(135px,20vw,220px)] right-[clamp(12px,3vw,28px)] z-[9997] flex min-w-[clamp(56px,8vw,80px)] touch-manipulation flex-col items-center justify-center gap-1 rounded-2xl px-[clamp(12px,2.5vw,20px)] py-[clamp(10px,2vw,16px)] text-center text-[clamp(10px,1.2vw,13px)] font-black tracking-wider text-white transition-transform hover:scale-105 active:scale-95 ${
+      className={`fixed bottom-[clamp(138px,20vw,220px)] right-[clamp(16px,3vw,32px)] z-[9997] flex min-w-[clamp(56px,8vw,80px)] touch-manipulation flex-col items-center justify-center gap-1 rounded-2xl px-[clamp(12px,2.5vw,20px)] py-[clamp(10px,2vw,16px)] text-center text-[clamp(10px,1.2vw,13px)] font-black tracking-wider text-white transition-transform hover:scale-105 active:scale-95 ${
         stackedCount > 0
           ? 'border-2 border-red-300 bg-gradient-to-br from-red-500 to-rose-700 shadow-[0_0_20px_rgba(239,68,68,0.6),0_8px_20px_rgba(0,0,0,0.5)]'
           : 'border border-white/20 bg-gradient-to-br from-[#1a2e20] to-[#0f1f14] shadow-[0_8px_20px_rgba(0,0,0,0.5)]'
