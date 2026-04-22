@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clipboard, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function App() {
-  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart, language, setLanguage, translations, soundEnabled, setSoundEnabled } = useGameStore();
+  const { gameStarted, startGame, players, winner, toastMessage, clearToast, ruleset, roomCode, waitingPlayers, resetGame, isOnline, isHost, mySocketId, menuView, setMenuView, setBotDifficulty, maxPlayers, minPlayersToStart, language, setLanguage, translations, soundEnabled, setSoundEnabled, playAgainLocal } = useGameStore();
   const t = translations?.[language] || translations?.id;
   const difficultyOptions = [
     {
@@ -405,8 +405,9 @@ export default function App() {
            <h2 className="text-3xl font-black mb-4">{t.landscapeHint}</h2>
        </div>
 
-       <div className="absolute top-[clamp(15px,3vw,30px)] left-[clamp(15px,3vw,30px)] z-[100] pointer-events-auto">
-         <div className="flex items-center gap-2">
+       <div className="absolute top-3 left-3 right-3 z-50 pointer-events-auto">
+         <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-2 py-2 backdrop-blur-md">
           <button onClick={() => { setMenuView('MAIN'); resetGame(); }} className="glass px-[clamp(12px,2vw,20px)] py-[clamp(6px,1vw,10px)] rounded-full text-white hover:bg-neutral-800/80 transition-colors flex items-center gap-2 text-[clamp(10px,1vw,14px)] border border-white/20 shadow-md transform hover:scale-105 active:scale-95">
              <ArrowLeft className="w-4 h-4" /> {t.leave}
           </button>
@@ -420,19 +421,19 @@ export default function App() {
               {soundEnabled ? t.on : t.off}
             </button>
           </div>
-         </div>
-       </div>
-
-       <div className="absolute top-[clamp(15px,3vw,30px)] right-[clamp(15px,3vw,30px)] z-[100] flex items-center gap-[clamp(8px,1vw,16px)] opacity-90 pointer-events-none">
-          <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-emerald-300 flex items-center shadow-md">
-             {t.roomBadge}: {roomCode || t.soloBadge}
-          </span>
-          <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-indigo-300 flex items-center shadow-md">
-             {t.rulesBadge}: {ruleset?.toUpperCase()}
-          </span>
-          <div className="pointer-events-auto">
-             <InfoModal />
           </div>
+          <div className="flex items-center gap-[clamp(8px,1vw,16px)] rounded-2xl border border-white/10 bg-black/20 px-2 py-2 backdrop-blur-md">
+            <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-emerald-300 flex items-center shadow-md">
+              {t.roomBadge}: {roomCode || t.soloBadge}
+            </span>
+            <span className="glass px-[clamp(8px,1vw,16px)] py-[clamp(4px,0.5vw,8px)] rounded-full text-[clamp(8px,0.6vw,12px)] font-bold tracking-widest text-indigo-300 flex items-center shadow-md">
+              {t.rulesBadge}: {ruleset?.toUpperCase()}
+            </span>
+            <div className="pointer-events-auto">
+              <InfoModal glass />
+            </div>
+          </div>
+         </div>
        </div>
 
        <GameBoard />
@@ -463,9 +464,17 @@ export default function App() {
                <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
                   className="absolute inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-4"
                >
-                  <div className="glass p-10 sm:p-16 rounded-[40px] text-center space-y-8 w-full max-w-lg">
+                 <motion.div
+                    initial={{ scale: 0.92, y: 18, opacity: 0 }}
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    exit={{ scale: 0.95, y: 8, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 280, damping: 24 }}
+                    className="glass p-8 sm:p-12 rounded-[36px] text-center space-y-6 w-full max-w-lg"
+                 >
                       <h2 className="text-5xl sm:text-7xl font-black font-montserrat text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] tracking-tighter">
                           {winner === myPlayer?.id ? t.victory : t.gameOver}
                       </h2>
@@ -474,13 +483,36 @@ export default function App() {
                               {t.winner}: <span className={winner === myPlayer?.id ? 'text-yellow-400' : 'text-emerald-400'}>{players.find(p => p.id === winner)?.name}</span>
                           </div>
                       </div>
-                       <button 
+                      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                        {isOnline ? (
+                          isHost ? (
+                            <button
+                              onClick={() => socket.emit('play-again', { code: roomCode })}
+                              className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-lg py-3 px-5 shadow-[0_10px_24px_rgba(16,185,129,0.35)] transition-all hover:scale-[1.02] active:scale-95"
+                            >
+                              {t.playAgain}
+                            </button>
+                          ) : (
+                            <div className="flex-1 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white/75">
+                              {t.waitingHostRematch}
+                            </div>
+                          )
+                        ) : (
+                          <button
+                            onClick={() => playAgainLocal()}
+                            className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-lg py-3 px-5 shadow-[0_10px_24px_rgba(16,185,129,0.35)] transition-all hover:scale-[1.02] active:scale-95"
+                          >
+                            {t.playAgain}
+                          </button>
+                        )}
+                        <button 
                           onClick={() => resetGame()}
-                          className="w-full glass bg-white hover:bg-gray-200 text-black font-black text-xl py-4 px-8 rounded-full shadow-[0_10px_30px_rgba(255,255,255,0.3)] transition-all transform hover:scale-105 active:scale-95 mt-4"
-                       >
+                          className="flex-1 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 text-white font-black text-lg py-3 px-5 transition-all hover:scale-[1.02] active:scale-95"
+                        >
                           {t.returnLobby}
-                       </button>
-                  </div>
+                        </button>
+                      </div>
+                 </motion.div>
                </motion.div>
            )}
        </AnimatePresence>
