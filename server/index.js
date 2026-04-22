@@ -104,6 +104,15 @@ io.on('connection', (socket) => {
     console.log(`Game started in room ${code}`);
   });
 
+  socket.on('play-again', ({ code }) => {
+    const room = rooms[code];
+    if (!room || socket.id !== room.host) return;
+    if (room.players.length < room.minPlayersToStart) return;
+    room.gameState = null;
+    io.to(code).emit('play-again-started', { players: room.players, ruleset: room.ruleset });
+    console.log(`Play again started in room ${code}`);
+  });
+
   socket.on('state-update', ({ code, state }) => {
     const room = rooms[code];
     if (!room) return;
