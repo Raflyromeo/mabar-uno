@@ -2,9 +2,10 @@ import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import Card from './Card';
 import { motion, AnimatePresence } from 'framer-motion';
+import { socket } from '../lib/socket';
 
 export default function GameBoard() {
-  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex } = useGameStore();
+  const { discardPile, deck, activeColor, direction, stackedDrawCount, passTurn, players, currentPlayerIndex, isOnline, mySocketId } = useGameStore();
 
   const handleDraw = () => {
      const myIndex = players.findIndex(p => !p.isAI);
@@ -13,7 +14,10 @@ export default function GameBoard() {
      }
   };
 
-  const humanIndex = players.findIndex(p => !p.isAI);
+  const resolvedMyId = socket.id || mySocketId;
+  const humanIndex = isOnline
+    ? players.findIndex((p) => p.id === resolvedMyId)
+    : players.findIndex((p) => !p.isAI);
   const opponents = [];
   if (humanIndex !== -1) {
       for (let i = 1; i < players.length; i++) {
