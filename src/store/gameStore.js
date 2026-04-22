@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { generateDeck, fisherYatesShuffle } from '../utils/gameLogic';
 import { socket } from '../lib/socket';
+import { translations, tText } from '../utils/translations';
 
 export const useGameStore = create(
   persist(
@@ -26,48 +27,20 @@ export const useGameStore = create(
       minPlayersToStart: 2,
       botDifficulty: 'medium',
       language: 'id',
+      soundEnabled: true,
+      chatMessages: [],
       menuView: 'MAIN',
-      translations: {
-        id: {
-          playCards: 'Keluarkan Kartu',
-          selectedCards: 'Kartu Dipilih',
-          clearSelection: 'Batal',
-          draw: 'AMBIL',
-          createRoom: 'Buat Room (Host)',
-          joinRoom: 'Gabung Room',
-          soloBots: 'Main Solo (Vs Bot)',
-          joinTitle: 'Gabung Room',
-          joinPlaceholder: 'Kode 6 Digit',
-          connect: 'SAMBUNG',
-          botDifficulty: 'Tingkat Bot',
-          startSolo: 'MULAI MATCH SOLO',
-          languageLabel: 'Bahasa',
-          easyLabel: 'Anak TK Friendly',
-          mediumLabel: 'Anak Tongkrongan',
-          hardLabel: 'Sepuh Uno',
-        },
-        en: {
-          playCards: 'Play Cards',
-          selectedCards: 'Selected',
-          clearSelection: 'Clear',
-          draw: 'DRAW',
-          createRoom: 'Create Room (Host)',
-          joinRoom: 'Join Room',
-          soloBots: 'Play Solo (Vs Bots)',
-          joinTitle: 'Join Room',
-          joinPlaceholder: '6-digit code',
-          connect: 'CONNECT',
-          botDifficulty: 'Bot Difficulty',
-          startSolo: 'START SOLO MATCH',
-          languageLabel: 'Language',
-          easyLabel: 'Casual',
-          mediumLabel: 'Competitive',
-          hardLabel: 'Hardcore',
-        },
-      },
+      translations,
 
       setMenuView: (view) => set({ menuView: view }),
       setLanguage: (language) => set({ language: language === 'en' ? 'en' : 'id' }),
+      setSoundEnabled: (enabled) => set({ soundEnabled: Boolean(enabled) }),
+      addChatMessage: (message) => set((state) => ({ chatMessages: [...state.chatMessages, message] })),
+      clearChatMessages: () => set({ chatMessages: [] }),
+      t: (key, vars) => {
+        const state = get();
+        return tText(state.language, key, vars);
+      },
 
       createRoom: (settings, hostName) => set(() => {
           const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -341,7 +314,7 @@ export const useGameStore = create(
           mySocketId: null,
           minPlayersToStart: 2,
           botDifficulty: 'medium',
-          language: 'id',
+          chatMessages: [],
           menuView: 'MAIN',
       }),
     }),
@@ -368,6 +341,7 @@ export const useGameStore = create(
         minPlayersToStart: state.minPlayersToStart,
         botDifficulty: state.botDifficulty,
         language: state.language,
+        soundEnabled: state.soundEnabled,
         menuView: state.menuView,
       }),
     }
