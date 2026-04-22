@@ -41,6 +41,32 @@ export const useGameStore = create(
         const state = get();
         return tText(state.language, key, vars);
       },
+      createMatchStateFromParticipants: (participants) => {
+        const freshDeck = generateDeck();
+        const players = participants.map((p) => ({
+          id: p.id,
+          name: p.name,
+          isAI: Boolean(p.isAI),
+          hand: freshDeck.splice(0, 7),
+          isUno: false,
+        }));
+        let firstCardIndex = freshDeck.findIndex((c) => c.value !== 'Wild' && c.value !== 'Draw4');
+        if (firstCardIndex === -1) firstCardIndex = 0;
+        const firstCard = freshDeck.splice(firstCardIndex, 1)[0];
+        return {
+          deck: freshDeck,
+          discardPile: [firstCard],
+          players,
+          currentPlayerIndex: 0,
+          direction: 1,
+          activeColor: firstCard.color !== 'None' ? firstCard.color : 'Red',
+          stackedDrawCount: 0,
+          winner: null,
+          toastMessage: 'MATCH START!',
+          gameStarted: true,
+          menuView: 'GAME',
+        };
+      },
 
       createRoom: (settings, hostName) => set(() => {
           const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -75,28 +101,7 @@ export const useGameStore = create(
       }),
 
       startGameFromRoom: () => set((state) => {
-        const freshDeck = generateDeck();
-        const players = state.waitingPlayers.map((p) => ({
-            id: p.id,
-            name: p.name,
-            isAI: p.isAI || false,
-            hand: freshDeck.splice(0, 7),
-            isUno: false
-        }));
-
-        return {
-            deck: freshDeck,
-            discardPile: [freshDeck.pop()],
-            players,
-            currentPlayerIndex: 0,
-            direction: 1,
-            activeColor: null,
-            stackedDrawCount: 0,
-            gameStarted: true,
-            winner: null,
-            toastMessage: 'MATCH START!',
-            menuView: 'GAME',
-        };
+        return get().createMatchStateFromParticipants(state.waitingPlayers);
       }),
 
       startGame: ({ playerCount = 2, ruleset = 'tongkrongan', isOnline = false, playerName = 'You' } = {}) => {
@@ -130,6 +135,20 @@ export const useGameStore = create(
           gameStarted: true,
           winner: null,
           menuView: 'GAME',
+        });
+      },
+      playAgainLocal: () => {
+        const state = get();
+        const participants = state.players.map((p) => ({ id: p.id, name: p.name, isAI: p.isAI }));
+        if (participants.length < 2) return;
+        const newMatchState = state.createMatchStateFromParticipants(participants);
+        set({
+          ...newMatchState,
+          ruleset: state.ruleset,
+          isOnline: false,
+          roomCode: null,
+          waitingPlayers: [],
+          isHost: false,
         });
       },
 
